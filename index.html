@@ -1177,7 +1177,7 @@ const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let MUS=null,musData=null,musBusy=false,seekDrag=false,musDir="";
 try{musDir=localStorage.getItem("ds.musDir")||"";}catch(e){}
 const tape={pos:0,at:0,dur:0,playing:false,f:null,v:0,aL:0,aR:1.1,tx:0,spin:0,spinT:0};
-const cas={y:1,tgt:1,lab:null,pend:null,wait:0};
+const cas={y:1,tgt:1,lab:null,pend:null,wait:0,side:"A",flip:null};
 let deckUntil=0;
 function tapePos(){const p=tape.pos+(tape.playing?(performance.now()-tape.at)/1000:0);return tape.dur?Math.min(tape.dur,p):p;}
 const labelOf=m=>({artist:m.artist||"",title:m.title||"",album:m.album||"",dur:m.dur||0});
@@ -1186,7 +1186,7 @@ function setDeck(on){
   const w=$("#nowWrap");if(w.classList.contains("tape")===on)return;
   w.classList.toggle("tape",on);$("#deck").setAttribute("aria-hidden",String(!on));
   if(on){cas.y=reduceMotion?0:1;cas.tgt=0;cas.wait=reduceMotion?0:0.6;}
-  else{tape.f=null;cas.pend=null;}
+  else{tape.f=null;tape.flipN=null;cas.pend=null;cas.flip=null;}
   deckUntil=performance.now()+1400;
 }
 function renderTape(st){
@@ -1194,9 +1194,13 @@ function renderTape(st){
   setDeck(!!m);
   if(!m){musMark(null);return;}
   const now=performance.now(),pred=tapePos(),playing=m.state==="PLAYING";
-  if(m.f!==tape.f){                                   // new song -> swap the cassette
+  const fl=m.flip_n||0,flipNow=tape.flipN!=null&&fl!==tape.flipN&&tape.f!==null;tape.flipN=fl;
+  tape.side=m.side||"A";tape.sideLen=m.side_len||2700;tape.sideBase=Math.max(0,(m.side_pos||0)-(m.pos||0));
+  if(m.f!==tape.f){                                   // new song -> swap the cassette (or turn it over: side full)
     const first=tape.f===null;tape.f=m.f;tape.pos=m.pos;tape.at=now;
-    if(first||!cas.lab||reduceMotion){cas.lab=labelOf(m);cas.pend=null;}else{cas.pend=labelOf(m);cas.tgt=1;}
+    if(first||!cas.lab||reduceMotion){cas.lab=labelOf(m);cas.pend=null;cas.side=tape.side;}
+    else if(flipNow){cas.pend=labelOf(m);cas.flip={t:0,to:tape.side};}
+    else{cas.pend=labelOf(m);cas.tgt=1;}
     musMark(m.f);
     $("#deckCv").setAttribute("aria-label","Kaseta: "+(m.artist?m.artist+" — ":"")+m.title);
   }else if(Math.abs(pred-m.pos)>1.5||playing!==tape.playing){tape.pos=m.pos;tape.at=now;}
@@ -1414,7 +1418,7 @@ function casBase(w,h,S,lab){                   // everything that does not move:
   casScrew(g,w*0.5,h*0.82,u*0.0125,0.4);
   [[0.026,0.055,0.2],[0.974,0.055,1.1],[0.026,0.945,0.7],[0.974,0.945,1.4]].forEach(([sx,sy,a])=>casScrew(g,w*sx,h*sy,u*0.0115,a));
   g.fillStyle="rgba(255,255,255,.2)";g.font=`700 ${Math.round(h*0.06)}px "Barlow Condensed",sans-serif`;g.textBaseline="middle";
-  g.textAlign="left";g.fillText("A",w*0.17,h*0.85);g.textAlign="right";g.fillText("◀ ▶",w*0.83,h*0.85);
+  g.textAlign="left";g.fillText(cas.side||"A",w*0.17,h*0.85);g.textAlign="right";g.fillText("◀ ▶",w*0.83,h*0.85);
   // ---- label (backlit like the VU meter faces)
   const lx=w*0.045,ly=h*0.05,lW=w*0.91,lH=h*0.665;
   g.save();g.shadowColor="rgba(0,0,0,.5)";g.shadowBlur=u*0.006;g.shadowOffsetY=u*0.002;
@@ -1434,7 +1438,7 @@ function casBase(w,h,S,lab){                   // everything that does not move:
   g.globalAlpha=0.75;g.font=`700 ${Math.round(h*0.042)}px "Barlow Condensed",sans-serif`;g.textAlign="left";
   g.fillText("DENON  STUDIO",lx+lW*0.12,ly+h*0.075);g.textAlign="right";g.fillText("HIGH POSITION · TYPE II",lx+lW*0.975,ly+h*0.075);
   g.globalAlpha=1;g.lineWidth=lw*1.4;g.strokeStyle=S.ink;roundRect(g,lx+lW*0.025,ly+h*0.045,lW*0.075,h*0.22,u*0.006);g.stroke();
-  g.font=`700 ${Math.round(h*0.17)}px "Barlow Condensed",sans-serif`;g.textAlign="center";g.fillText("A",lx+lW*0.0625,ly+h*0.215);
+  const SD=cas.side||"A";g.font=`700 ${Math.round(h*0.17)}px "Barlow Condensed",sans-serif`;g.textAlign="center";g.fillText(SD,lx+lW*0.0625,ly+h*0.215);
   g.globalAlpha=0.35;g.lineWidth=lw;g.beginPath();
   [0.205,0.305].forEach(yy=>{g.moveTo(lx+lW*0.12,ly+h*yy);g.lineTo(lx+lW*0.975,ly+h*yy);});g.stroke();g.globalAlpha=1;
   if(S.glow){g.shadowColor=S.glow;g.shadowBlur=u*0.01;}
@@ -1452,7 +1456,7 @@ function casBase(w,h,S,lab){                   // everything that does not move:
   g.fillText("NR",lx+lW*0.03,ny);g.lineWidth=lw;
   [["ON",0.085],["OFF",0.165]].forEach(([t,px],i)=>{g.strokeRect(lx+lW*px,ny-h*0.016,h*0.032,h*0.032);g.fillText(t,lx+lW*px+h*0.045,ny);
     if(i===1){g.save();g.font=`700 ${Math.round(h*0.06)}px ${HAND}`;g.fillText("✓",lx+lW*px-h*0.005,ny-h*0.004);g.restore();}});
-  g.textAlign="center";g.fillText("SIDE A  ·  45 MIN  ·  70 µs EQ",lx+lW*0.55,ny);
+  g.textAlign="center";g.fillText("SIDE "+SD+"  ·  45 MIN  ·  70 µs EQ",lx+lW*0.55,ny);
   g.textAlign="right";g.fillText("STEREO",lx+lW*0.97,ny);g.globalAlpha=1;
   g.restore();
   g.strokeStyle="rgba(0,0,0,.35)";g.lineWidth=lw;roundRect(g,lx,ly,lW,lH,u*0.012);g.stroke();
@@ -1471,7 +1475,7 @@ function casGlass(w,h){                        // window frames + reflections, d
   casWinPath(g,0,u*0.003,w,h);g.strokeStyle="rgba(255,255,255,.18)";g.lineWidth=u*0.002;g.stroke();
   return{c,pad};}
 function drawCassette(g,x,y,w,h,S,lab,power,rL,rR){
-  const key=[skin,themeName(),Math.round(w),Math.round(h),lab&&lab.artist,lab&&lab.title,lab&&lab.album,lab&&Math.round(lab.dur||0),document.fonts&&document.fonts.status].join("|");
+  const key=[skin,themeName(),Math.round(w),Math.round(h),lab&&lab.artist,lab&&lab.title,lab&&lab.album,lab&&Math.round(lab.dur||0),document.fonts&&document.fonts.status,cas.side].join("|");
   if(!casCache||casCache.key!==key)casCache={key,base:casBase(w,h,S,lab),glass:casGlass(w,h)};
   const B=casCache.base;g.drawImage(B.c,x-B.pad,y-B.pad);
   // through the windows: backlight, tape packs, turning hubs
@@ -1503,6 +1507,75 @@ function drawCassette(g,x,y,w,h,S,lab,power,rL,rR){
   g.save();g.strokeStyle="rgba(255,220,180,.2)";g.lineWidth=h*0.01;g.setLineDash([u*0.005,u*0.028]);g.lineDashOffset=-tape.tx;
   g.beginPath();g.moveTo(x+w*0.175,y+h*0.97);g.lineTo(x+w*0.825,y+h*0.97);g.stroke();g.restore();
 }
+/* ---- deck side panels: mechanical tape counter (left), LED peak meters (right) ---- */
+const LVL={hold:[-60,-60],holdT:[0,0]};
+function dLamp(g,x,y,r,on,col,pw){
+  g.beginPath();g.arc(x,y,r,0,7);
+  if(on){g.fillStyle=col;g.shadowColor=col;g.shadowBlur=r*3.5*pw;g.globalAlpha=0.3+0.7*pw;}
+  else{g.fillStyle="#26292c";g.shadowBlur=0;g.globalAlpha=1;}
+  g.fill();g.shadowBlur=0;g.globalAlpha=1;
+  g.strokeStyle="rgba(0,0,0,.7)";g.lineWidth=Math.max(1,r*0.25);g.stroke();}
+function dText(g,t,x,y,size,col,align,alpha,weight){
+  g.font=`${weight||600} ${Math.round(size)}px "Barlow Condensed",sans-serif`;g.textAlign=align||"center";g.textBaseline="middle";
+  g.fillStyle=col;g.globalAlpha=alpha==null?1:alpha;g.fillText(t,x,y);g.globalAlpha=1;}
+function deckCounter(g,S,x0,x1,top,bot,pw,counter,side){
+  const w=x1-x0,h=bot-top,cx=(x0+x1)/2,fs=Math.max(9,h*0.07),dim=0.35+0.4*pw;
+  dText(g,"TAPE COUNTER",cx,top+h*0.06,fs,S.lamp,"center",dim);
+  // three rolling drums, white figures on black
+  const dw=Math.min(w*0.26,h*0.16),dh=dw*1.45,bw=dw*3.35,bx=cx-bw/2,by=top+h*0.15;
+  g.fillStyle="#020203";roundRect(g,bx,by,bw,dh+dw*0.35,dw*0.12);g.fill();
+  g.strokeStyle="rgba(255,255,255,.14)";g.lineWidth=Math.max(1,dw*0.03);g.stroke();
+  const c=((counter%1000)+1000)%1000,u=c%10,roll=u>9?u-9:0;
+  const tensF=Math.floor(c/10)%10,hundF=Math.floor(c/100)%10;
+  const vals=[hundF+(tensF===9?roll:0),tensF+roll,u];
+  vals.forEach((v,i)=>{const x=bx+dw*0.18+i*dw,y=by+dw*0.175,ww=dw*0.9;
+    g.save();g.beginPath();g.rect(x,y,ww,dh);g.clip();
+    g.fillStyle="#141416";g.fillRect(x,y,ww,dh);
+    const n=Math.floor(v),f=v-n;
+    g.font=`700 ${Math.round(dh*0.72)}px "Barlow Condensed",sans-serif`;g.textAlign="center";g.textBaseline="middle";g.fillStyle="#f2efe6";
+    g.fillText(String(n%10),x+ww/2,y+dh/2-f*dh);g.fillText(String((n+1)%10),x+ww/2,y+dh/2+(1-f)*dh);
+    const cyl=g.createLinearGradient(0,y,0,y+dh);cyl.addColorStop(0,"rgba(0,0,0,.85)");cyl.addColorStop(.28,"rgba(0,0,0,0)");
+    cyl.addColorStop(.5,"rgba(255,255,255,.06)");cyl.addColorStop(.72,"rgba(0,0,0,0)");cyl.addColorStop(1,"rgba(0,0,0,.85)");
+    g.fillStyle=cyl;g.fillRect(x,y,ww,dh);g.restore();
+    if(i)g.fillStyle="#000",g.fillRect(x-dw*0.05,y,dw*0.1,dh);});
+  // reset button
+  const ry=by+dh+dw*0.35+h*0.09,rr=Math.max(3,dw*0.22);
+  const rb=g.createRadialGradient(cx-rr*0.3,ry-rr*0.3,rr*0.1,cx,ry,rr);rb.addColorStop(0,"#5a5d63");rb.addColorStop(1,"#141518");
+  g.fillStyle=rb;g.beginPath();g.arc(cx-bw*0.28,ry,rr,0,7);g.fill();g.strokeStyle="rgba(0,0,0,.8)";g.stroke();
+  dText(g,"RESET",cx-bw*0.28+rr*1.6,ry,fs*0.85,S.lamp,"left",dim*0.8);
+  // tape type + side lamps
+  const ly=by+dh+dw*0.35+h*0.27,lr=Math.max(2.5,h*0.022);
+  [["NORM",-1,false],["CrO₂",0,true],["METAL",1,false]].forEach(([t,k,on])=>{const x=cx+k*w*0.3;
+    dLamp(g,x,ly,lr,on,S.lamp,pw);dText(g,t,x,ly+lr*3.2,fs*0.8,S.lamp,"center",on?dim:dim*0.55);});
+  const sy=ly+h*0.2;
+  dText(g,"SIDE",cx-w*0.38,sy,fs*0.85,S.lamp,"left",dim*0.7);
+  [["A",0.02],["B",0.32]].forEach(([t,k])=>{const on=side===t,x=cx+w*k;dLamp(g,x-lr*2.6,sy,lr,on,S.lamp,pw);
+    dText(g,(t==="A"?"▶ ":"◀ ")+t,x,sy,fs*1.05,S.lamp,"left",on?0.4+0.6*pw:dim*0.5,700);});
+}
+function deckLevels(g,S,x0,x1,top,bot,pw,dt){
+  const w=x1-x0,h=bot-top,cx=(x0+x1)/2,fs=Math.max(9,h*0.07),dim=0.35+0.4*pw,now=performance.now();
+  dText(g,"PEAK LEVEL",cx,top+h*0.06,fs,S.lamp,"center",dim);
+  const THR=[-30,-24,-20,-16,-12,-9,-6,-4,-2,0,2,4,6],N=THR.length;
+  const bt=top+h*0.15,bb=top+h*0.73,segH=(bb-bt)/N,bw=Math.min(w*0.17,h*0.1);
+  const lv=[mL,mR].map(m=>m.fast<=0.0005?-60:20*Math.log10(m.fast*FULL));
+  [0,1].forEach(ch=>{const db=lv[ch];
+    if(db>=LVL.hold[ch]){LVL.hold[ch]=db;LVL.holdT[ch]=now;}else if(now-LVL.holdT[ch]>1100)LVL.hold[ch]=Math.max(-60,LVL.hold[ch]-dt*20);
+    const x=ch?cx+w*0.2-bw/2:cx-w*0.2-bw/2;
+    let hi=-1;for(let i=0;i<N;i++)if(LVL.hold[ch]>=THR[i])hi=i;
+    for(let i=0;i<N;i++){const y=bb-(i+1)*segH+segH*0.14,t=THR[i];
+      const col=t>0?"#ff3b30":t>=-4?"#ffb020":"#3dff7a",off=t>0?"#3a1513":t>=-4?"#3a2a0e":"#0f2a17";
+      const on=(db>=t||i===hi&&hi>=0)&&pw>0.3;
+      if(on){g.fillStyle=col;g.shadowColor=col;g.shadowBlur=segH*0.9*pw;g.globalAlpha=0.35+0.65*pw;}else{g.fillStyle=off;g.shadowBlur=0;}
+      g.fillRect(x,y,bw,segH*0.72);g.shadowBlur=0;g.globalAlpha=1;}
+    dText(g,ch?"R":"L",x+bw/2,bb+h*0.06,fs,S.lamp,"center",dim,700);});
+  g.font=`500 ${Math.round(fs*0.78)}px "Barlow Condensed",sans-serif`;
+  [6,0,-6,-12,-20,-30].forEach(t=>{const i=THR.indexOf(t);const y=bb-(i+0.5)*segH;
+    dText(g,(t>0?"+":"")+t,cx,y,fs*0.78,t>0?"#ff6a5e":S.lamp,"center",dim*0.85,500);});
+  const ny=top+h*0.92,lr=Math.max(2.5,h*0.022);
+  dText(g,"NR",cx-w*0.42,ny,fs*0.85,S.lamp,"left",dim*0.7);
+  [["B",-0.1,false],["C",0.12,false],["OFF",0.32,true]].forEach(([t,k,on])=>{const x=cx+w*k;
+    dLamp(g,x-lr*2.4,ny,lr,on,S.lamp,pw);dText(g,t,x,ny,fs*0.85,S.lamp,"left",on?dim:dim*0.55);});
+}
 function drawDeck(dt){
   if(!$("#nowWrap").classList.contains("tape")&&performance.now()>deckUntil)return;
   const W=deckCv.width,H=deckCv.height;
@@ -1510,13 +1583,18 @@ function drawDeck(dt){
   if(W<160||H<90||H-2*W*0.025<60){dg.clearRect(0,0,W,H);return;}
   const S=deckSkin(),key=skin+"|"+themeName()+"|"+W+"x"+H;
   if(!deckBg||deckBg.key!==key)deckBg={key,lit:deckFace(1,S,W,H),dark:deckFace(0,S,W,H)};
-  // motion: cassette slide (eject / insert) and reels
+  // motion: auto-reverse flip, cassette slide (eject / insert), reels
+  if(cas.flip){cas.flip.t+=dt/0.95;
+    if(cas.flip.t>=0.5&&!cas.flip.done){cas.flip.done=true;cas.side=cas.flip.to;if(cas.pend){cas.lab=cas.pend;cas.pend=null;}}
+    if(cas.flip.t>=1)cas.flip=null;}
   if(cas.wait>0)cas.wait-=dt;else cas.y+=(cas.tgt-cas.y)*Math.min(1,dt*(cas.tgt>cas.y?7:4.2));
-  if(cas.pend&&cas.y>0.96){cas.lab=cas.pend;cas.pend=null;cas.tgt=0;}
+  if(cas.pend&&!cas.flip&&cas.y>0.96){cas.lab=cas.pend;cas.pend=null;cas.tgt=0;}
   if(tape.spinT>0)tape.spinT-=dt;
-  const tgt=cas.pend||cas.y>0.2?0:tape.spinT>0?tape.spin:tape.playing?1:0;
+  const tgt=cas.pend||cas.flip||cas.y>0.2?0:tape.spinT>0?tape.spin:tape.playing?1:0;
   tape.v+=(tgt-tape.v)*Math.min(1,dt*(Math.abs(tgt)>1||Math.abs(tape.v)>1.5?7:2.6));
-  const RMIN=CAS.RMIN,RMAX=CAS.RMAX,p=tape.dur?Math.max(0,Math.min(1,tapePos()/tape.dur)):0;
+  // reels show how much of the 45-minute SIDE is used, like a real mixtape
+  const RMIN=CAS.RMIN,RMAX=CAS.RMAX,sl=tape.sideLen||2700;
+  const p=Math.max(0,Math.min(1,((tape.sideBase||0)+tapePos())/sl));
   const rL=Math.sqrt(RMIN*RMIN+(1-p)*(RMAX*RMAX-RMIN*RMIN)),rR=Math.sqrt(RMIN*RMIN+p*(RMAX*RMAX-RMIN*RMIN));
   const V0=0.1;tape.aL+=tape.v*V0/rL*dt;tape.aR+=tape.v*V0/rR*dt;
   // frame
@@ -1527,12 +1605,24 @@ function drawDeck(dt){
   const cx=(W-cw)/2,cy0=ins+(ih-ch)/2+ih*0.03,cy=cy0+cas.y*(ih*0.95);
   tape.tx+=tape.v*V0*cw*dt;
   g.save();roundRect(g,ins,ins,iw,ih,W*0.012);g.clip();
-  if(cas.y<0.995){g.save();g.translate(cx+cw/2,cy+ch/2);g.rotate(cas.y*0.035);g.translate(-(cx+cw/2),-(cy+ch/2));
-    drawCassette(g,cx,cy,cw,ch,S,cas.lab,pw,rL,rR);g.restore();}
+  // side panels (only when there is room next to the cassette)
+  const gap=ih*0.07,side=cx-ins-2*gap;
+  if(side>=ih*0.5){const pwid=Math.min(side,ih*0.95);
+    const lx0=ins+gap+(side-pwid)/2,rx0=cx+cw+gap+(side-pwid)/2;
+    const counter=600*(rR-RMIN)/(RMAX-RMIN);
+    deckCounter(g,S,lx0,lx0+pwid,cy0,cy0+ch,pw,counter,cas.side||"A");
+    deckLevels(g,S,rx0,rx0+pwid,cy0,cy0+ch,pw,dt);}
+  if(cas.y<0.995){g.save();g.translate(cx+cw/2,cy+ch/2);
+    if(cas.flip){const t=cas.flip.t,sx=Math.max(0.02,Math.abs(Math.cos(Math.PI*t)));   // turn the tape over
+      g.translate(0,-ih*0.06*Math.sin(Math.PI*t));g.scale(sx,1-0.05*Math.sin(Math.PI*t));}
+    g.rotate(cas.y*0.035);g.translate(-(cx+cw/2),-(cy+ch/2));
+    drawCassette(g,cx,cy,cw,ch,S,cas.lab,pw,rL,rR);
+    if(cas.flip){const k=Math.sin(Math.PI*cas.flip.t);g.fillStyle="rgba(0,0,0,"+(0.55*k)+")";roundRect(g,cx,cy,cw,ch,cw*0.034);g.fill();}
+    g.restore();}
   // deck legends on the dark backdrop
   const fs=Math.max(10,Math.min(ih*0.075,(cy0-ins)*0.62));
   g.font=`600 ${Math.round(fs)}px "Barlow Condensed",sans-serif`;g.textBaseline="middle";
-  const st=!MUS?"■ STOP":cas.pend?"⏏ EJECT":tape.spinT>0?(tape.spin>0?"▶▶ FF":"◀◀ REW"):tape.playing?"▶ PLAY":MUS.state==="PAUSED_PLAYBACK"?"❚❚ PAUSE":"■ STOP";
+  const st=!MUS?"■ STOP":cas.flip?"⇄ REVERSE":cas.pend?"⏏ EJECT":tape.spinT>0?(tape.spin>0?"▶▶ FF":"◀◀ REW"):tape.playing?"▶ PLAY":MUS.state==="PAUSED_PLAYBACK"?"❚❚ PAUSE":"■ STOP";
   g.fillStyle=S.lamp;g.shadowColor=S.lamp;g.shadowBlur=fs*0.6*pw;g.globalAlpha=0.25+0.7*pw;g.textAlign="left";
   g.fillText(st,ins+fs*0.8,ins+(cy0-ins)/2);g.shadowBlur=0;
   g.globalAlpha=0.3*pw+0.1;g.textAlign="right";g.fillText("DENON STUDIO · CASSETTE · AUTO REVERSE",W-ins-fs*0.8,ins+(cy0-ins)/2);

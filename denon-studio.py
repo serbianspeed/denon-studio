@@ -971,11 +971,20 @@ def music_url(rel):
     from urllib.parse import quote
     return "http://%s:%d/music/%s" % (my_ip(), LISTEN_PORT, quote(rel, safe="/"))
 
-def music_start(idx):
+SIDE_LEN = 45 * 60          # a C-90 mixtape: 45 minutes per side, then auto-reverse to the other side
+
+def music_start(idx, fresh=False):
     """send queue[idx] to the Denon (call with _mus_lock NOT held: it talks to the network)"""
     with _mus_lock:
         if not (0 <= idx < len(_mus["queue"])): return False, "nema pesme"
         rel = _mus["queue"][idx]
+        if fresh:
+            _mus.update(side="A", side_acc=0.0)
+        elif _mus["active"] and _mus["meta"]:
+            _mus["side_acc"] = _mus.get("side_acc", 0.0) + music_pos()     # what the previous song used of the side
+            if _mus["side_acc"] >= SIDE_LEN:                                # side full -> turn the tape over
+                _mus.update(side="B" if _mus.get("side") == "A" else "A", side_acc=0.0,
+                            flip_n=_mus.get("flip_n", 0) + 1)
     meta = track_meta(rel)
     p = music_path(rel)
     if not p or not os.path.isfile(p): return False, "fajl ne postoji"
@@ -1019,7 +1028,7 @@ def music_play(rel_dir, rel_file, shuffle):
         q = ([q[first]] if rel_file in q else []) + rest; first = 0
     with _mus_lock:
         _mus.update(queue=q, dir=rd, shuffle=bool(shuffle))
-    return music_start(first)
+    return music_start(first, fresh=True)
 
 def music_ctl(a, t=0.0):
     with _mus_lock:
@@ -1081,7 +1090,8 @@ def music_status():
         return {"active": True, "state": m["state"], "want": m["want"], "pos": round(music_pos(), 2),
                 "dur": m["dur"], "idx": m["idx"], "n": len(m["queue"]), "f": meta["f"], "dir": m["dir"],
                 "title": meta["title"], "artist": meta["artist"], "album": meta["album"], "q": meta["q"],
-                "shuffle": m["shuffle"]}
+                "shuffle": m["shuffle"], "side": m.get("side", "A"), "side_pos": round(m.get("side_acc", 0.0) + music_pos(), 1),
+                "side_len": SIDE_LEN, "flip_n": m.get("flip_n", 0)}
 
 def music_loop():
     """follows the Denon: position, end of track -> next one, user switched input -> done"""
