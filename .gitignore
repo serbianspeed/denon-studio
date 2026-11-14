@@ -1,0 +1,12 @@
+# station logo cache (downloaded at runtime)
+logos/
+# local backups
+*.bak-*
+*.bak
+# python
+__pycache__/
+*.pyc
+# editors / OS
+.vscode/
+.idea/
+.DS_Store

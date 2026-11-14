@@ -1,0 +1,1551 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Denon Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Barlow+Condensed:wght@500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("ds.theme")||"crna";}catch(e){document.documentElement.dataset.theme="crna";}</script>
+<style>
+:root{
+  --rack:#0b0b0c; --plate1:#232427; --plate2:#17181a; --edge:#3a3c40;
+  --engrave:#c9ccd2; --engrave-dim:#7d828b;
+  --vfd:#6ff3d6; --vfd-dim:#16352f; --vfd-bg:#06100e;
+  --led-g:#3dff7a; --led-a:#ffb020; --led-r:#ff3b30; --led-off:#2a2d2f;
+  --btn1:#2d2f33; --btn2:#1b1c1f;
+  --vfd-deep:#138c78; --vfd-glow:rgba(111,243,214,.55);
+  --plate-text:#d3d6dc; --plate-dim:#80858e; --btn-text:#c9ccd2; --rail1:#232427; --rail2:#111214;
+}
+/* ---------- CRNA (black) ---------- */
+:root[data-theme=crna]{--plate1:#1f2023; --plate2:#0d0e10; --btn1:#2a2c30; --btn2:#141517}
+/* ---------- HROM (chrome) ---------- */
+:root[data-theme=hrom]{--rack:#141518; --plate-text:#1b1d21; --plate-dim:#474b52; --btn-text:#1f2125;
+  --rail1:#d9dce0; --rail2:#8d9198; --btn1:#fbfbfc; --btn2:#a9adb3}
+[data-theme=hrom] .unit{border-color:#2a2c30;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,rgba(0,0,0,.035) 1px 2px,transparent 2px 4px),
+    linear-gradient(180deg,#f5f6f8 0%,#d5d8dc 38%,#c3c6cb 52%,#dfe1e4 64%,#a3a7ad 100%);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(0,0,0,.3),0 2px 0 #000,0 6px 10px rgba(0,0,0,.6),0 18px 34px rgba(0,0,0,.65)}
+[data-theme=hrom] .unit::before,[data-theme=hrom] .unit::after{border-color:#3a3c40;box-shadow:inset 1px 0 0 rgba(255,255,255,.7),inset -1px 0 0 rgba(0,0,0,.25)}
+[data-theme=hrom] .hb{border-color:#2c2e33;
+  background:linear-gradient(180deg,#ffffff 0%,#dfe1e4 45%,#b9bcc2 55%,#d3d5d9 100%);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(0,0,0,.2),0 3px 0 #2a2c30,0 5px 9px rgba(0,0,0,.45)}
+[data-theme=hrom] .hb:active,[data-theme=hrom] .hb.press{box-shadow:inset 0 2px 3px rgba(0,0,0,.45),0 0 0 #000}
+[data-theme=hrom] .cat-info,[data-theme=hrom] .val,[data-theme=hrom] .hint b{color:#06695b;text-shadow:none}
+/* black anodised volume knob in the dark theme (same colour as the units) */
+[data-theme=crna] .knob{
+  background:
+   radial-gradient(circle at 50% 50%,transparent 0 58%,rgba(0,0,0,.5) 59% 60%,transparent 61%),
+   repeating-conic-gradient(from 0deg,#26282c 0deg 2deg,#3a3d42 2deg 4deg,#1b1c1f 4deg 6deg,#303236 6deg 8deg),
+   radial-gradient(circle,#2e3034,#141517);
+  box-shadow:0 0 0 6px #0b0c0d,0 0 0 7px #2c2e32,0 10px 18px rgba(0,0,0,.8),inset 0 2px 3px rgba(255,255,255,.18),inset 0 -3px 6px rgba(0,0,0,.6)}
+[data-theme=crna] .knob::before{
+  background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.2),rgba(255,255,255,0) 45%),
+  repeating-conic-gradient(#1f2023 0 1deg,#2b2d31 1deg 2deg),radial-gradient(circle,#26282b,#18191b);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08),0 1px 2px rgba(0,0,0,.6)}
+[data-theme=hrom] .knob{box-shadow:0 0 0 6px #2a2c30,0 0 0 7px #f4f5f7,0 10px 18px rgba(0,0,0,.6),inset 0 2px 3px rgba(255,255,255,.5),inset 0 -3px 6px rgba(0,0,0,.45)}
+[data-theme=hrom] .side{border-left-color:rgba(0,0,0,.25);box-shadow:-1px 0 0 rgba(255,255,255,.6)}
+[data-theme=hrom] .vfd{border-color:#2a2c30;box-shadow:inset 0 0 18px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.8)}
+[data-theme=hrom] .meter{box-shadow:inset 0 4px 12px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.85)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--rack);color:var(--engrave)}
+body{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;overflow:hidden;
+  background:radial-gradient(1200px 600px at 50% -10%,#1d1f24 0%,#0b0b0c 60%) fixed;padding:10px 14px}
+.rack{height:100%;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+
+/* ---------- unit (rack component) ---------- */
+.unit{position:relative;border-radius:6px;padding:11px 46px;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,rgba(0,0,0,.02) 1px 3px),
+    linear-gradient(180deg,var(--plate1),var(--plate2));
+  border:1px solid #000;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13),inset 0 -2px 0 rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.025),
+    0 2px 0 #000,0 6px 10px rgba(0,0,0,.55),0 18px 34px rgba(0,0,0,.6)}
+.unit::before,.unit::after{content:"";position:absolute;top:0;bottom:0;width:30px;
+  background:linear-gradient(90deg,var(--rail1),var(--rail2));border-right:1px solid #000;border-left:1px solid #000;
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.08),inset -1px 0 0 rgba(0,0,0,.4)}
+.unit::before{left:0;border-radius:6px 0 0 6px}.unit::after{right:0;border-radius:0 6px 6px 0}
+.screw{position:absolute;width:16px;height:16px;border-radius:50%;z-index:2;
+  background:radial-gradient(circle at 35% 28%,#f4f5f7,#a9adb3 40%,#5d6168 75%,#2c2e32);
+  box-shadow:0 1px 2px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.6)}
+.screw::after{content:"";position:absolute;inset:2.5px;background:radial-gradient(circle at 50% 75%,#4a4d53,#0b0c0e 65%);
+  clip-path:polygon(50.0% 2.0%,65.0% 24.0%,91.6% 26.0%,80.0% 50.0%,91.6% 74.0%,65.0% 76.0%,50.0% 98.0%,35.0% 76.0%,8.4% 74.0%,20.0% 50.0%,8.4% 26.0%,35.0% 24.0%)}
+.screw.tl{left:8px;top:9px}.screw.bl{left:8px;bottom:9px}.screw.tr{right:8px;top:9px}.screw.br{right:8px;bottom:9px}
+.badge{font-weight:700;letter-spacing:4px;font-size:13px;color:var(--plate-text);white-space:nowrap}
+.badge small{font-weight:500;letter-spacing:2px;color:var(--plate-dim);margin-left:8px;font-size:11px}
+.lbl{font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--plate-dim)}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hdr{margin-bottom:9px;flex-wrap:nowrap;min-height:22px}
+.spacer{flex:1}
+
+/* ---------- hardware buttons ---------- */
+.hb{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--btn-text);padding:8px 11px 7px;min-height:36px;border-radius:5px;
+  background:linear-gradient(180deg,var(--btn1),var(--btn2));border:1px solid #000;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.5),0 3px 0 #000,0 5px 9px rgba(0,0,0,.55);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .05s,box-shadow .05s;user-select:none;white-space:nowrap}
+.hb:active,.hb.press{transform:translateY(3px);box-shadow:inset 0 1px 2px rgba(0,0,0,.7),0 0 0 #000}
+.hb:focus-visible,.st:focus-visible,.tab:focus-visible{outline:2px solid var(--vfd);outline-offset:2px}
+.hb:disabled{opacity:.4;cursor:default}
+.led{width:7px;height:7px;border-radius:50%;background:var(--led-off);box-shadow:inset 0 1px 1px rgba(0,0,0,.8);flex:none}
+.led.g{background:var(--led-g);box-shadow:0 0 6px var(--led-g),0 0 12px rgba(61,255,122,.5)}
+.led.a{background:var(--led-a);box-shadow:0 0 6px var(--led-a),0 0 12px rgba(255,176,32,.5)}
+.led.r{background:var(--led-r);box-shadow:0 0 6px var(--led-r),0 0 12px rgba(255,59,48,.5)}
+.grid{display:grid;gap:8px}
+
+/* ---------- VFD ---------- */
+.vfd{font-family:"VT323",ui-monospace,monospace;color:var(--vfd);background:var(--vfd-bg);
+  border-radius:4px;border:1px solid #000;padding:9px 14px;position:relative;overflow:hidden;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.9),inset 0 0 0 1px rgba(111,243,214,.05);
+  text-shadow:0 0 4px rgba(111,243,214,.85),0 0 12px rgba(111,243,214,.35)}
+.vfd::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px),
+  linear-gradient(160deg,rgba(255,255,255,.07),transparent 40%)}
+.vfd .dim{color:var(--vfd-dim);text-shadow:none}
+.ind{display:flex;gap:12px;flex-wrap:wrap;font-size:15px;letter-spacing:1px}
+.ind span{color:var(--vfd-dim);text-shadow:none}
+.ind span.on{color:var(--vfd);text-shadow:0 0 4px rgba(111,243,214,.85)}
+.ind span.on.warn{color:#ffb85a;text-shadow:0 0 5px rgba(255,184,90,.9)}
+
+/* ---------- receiver (+ inputs) ---------- */
+.recv{display:grid;grid-template-columns:auto minmax(0,1.15fr) auto minmax(0,1fr);gap:20px;align-items:stretch}
+.recv .pw,.recv .knobwrap{justify-content:center}
+.recv .inputs{grid-auto-rows:1fr;gap:6px;grid-template-columns:repeat(var(--cols,6),minmax(0,1fr))}
+.pw{display:flex;flex-direction:column;align-items:center;gap:7px}
+.pwbtn{width:50px;height:50px;border-radius:50%;padding:0;font-size:19px}
+.mainvfd{min-height:112px;display:flex;flex-direction:column;justify-content:space-between}
+.mainvfd .l1{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.mainvfd .src{font-size:40px;line-height:1;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mainvfd .vol{font-size:44px;line-height:1;white-space:nowrap}
+.mainvfd .l2{font-size:22px;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:24px}
+.knobwrap{display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 6px}
+.knob{width:104px;height:104px;border-radius:50%;position:relative;cursor:grab;touch-action:none;
+  background:
+   radial-gradient(circle at 50% 50%,transparent 0 58%,rgba(0,0,0,.35) 59% 60%,transparent 61%),
+   repeating-conic-gradient(from 0deg,#8b9097 0deg 2deg,#b9bdc4 2deg 4deg,#6f747b 4deg 6deg,#a3a8af 6deg 8deg),
+   radial-gradient(circle,#c9cdd3,#6c7076);
+  box-shadow:0 0 0 6px #121315,0 0 0 7px #2c2e32,0 10px 18px rgba(0,0,0,.7),inset 0 2px 3px rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.45)}
+.knob::before{content:"";position:absolute;inset:14%;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%,rgba(255,255,255,.55),rgba(255,255,255,0) 45%),
+  repeating-conic-gradient(#9da2a9 0 1deg,#c3c7cd 1deg 2deg);box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.knob .ptr{position:absolute;left:50%;top:7%;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#fff 0 18%,var(--vfd) 45%,var(--vfd-deep) 100%);
+  box-shadow:0 0 4px var(--vfd),0 0 10px var(--vfd),0 0 18px var(--vfd-glow),inset 0 -1px 1px rgba(0,0,0,.4)}
+.knob:active{cursor:grabbing}
+.mute.on .led{background:var(--led-r);box-shadow:0 0 6px var(--led-r)}
+.inputs{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));align-content:center}
+.inputs .hb{justify-content:flex-start;font-size:12px;letter-spacing:.6px;overflow:hidden;min-height:0;padding:4px 8px;gap:6px}
+.inputs .hb .tx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- main area: left (VU + playback) | right (radio) ---------- */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(420px,1fr);gap:8px}
+.col{display:flex;flex-direction:column;gap:8px;min-height:0}
+
+/* ---------- meter bridge ---------- */
+.vuunit{flex:1;min-height:0;display:flex;flex-direction:column}
+.vubody{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+.meters{flex:1;min-height:120px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.meter{position:relative;min-height:0;border-radius:10px;background:linear-gradient(180deg,#050506,#0e0f11);border:1px solid #000;
+  box-shadow:inset 0 4px 12px rgba(0,0,0,.95),inset 0 -1px 0 rgba(255,255,255,.04),0 1px 0 rgba(255,255,255,.08)}
+.meter canvas{position:absolute;left:8px;top:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain;display:block}
+.peak{position:absolute;right:14px;top:12px;display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:2px;color:#9a8d73;z-index:1}
+.peak .led{width:9px;height:9px}
+.under{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;flex:none}
+.spec{padding:6px}
+.spec canvas{display:block;width:100%;height:84px;cursor:pointer}
+.meter canvas{cursor:pointer}
+select.mini{font-size:12.5px;padding:2px 6px;max-width:150px}
+.ctrls{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;font-size:13px;align-content:center}
+.ctrls [hidden]{display:none}
+select,input[type=range]{accent-color:var(--vfd)}
+select{font:inherit;font-size:14px;color:var(--engrave);background:#121315;border:1px solid #000;border-radius:4px;padding:5px 8px;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.8);min-width:0}
+.val{font-family:"VT323",monospace;color:var(--vfd);font-size:18px;min-width:52px;text-align:right}
+.rng{display:flex;align-items:center;gap:8px}
+.rng input{flex:1;min-width:0}
+.vuon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);border-radius:6px;z-index:3}
+.vuon[hidden]{display:none}
+
+/* ---------- playback / surround ---------- */
+.play{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center}
+.modes{grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}
+.modes .hb{font-size:12px;letter-spacing:1px;padding:7px 8px 6px;min-height:34px;overflow:hidden}
+.side{display:flex;flex-direction:column;gap:8px;align-items:stretch;padding-left:18px;border-left:1px solid rgba(0,0,0,.6);
+  box-shadow:-1px 0 0 rgba(255,255,255,.04)}
+.transport{display:flex;gap:7px;justify-content:center}
+.transport .hb{min-width:44px;font-size:15px;padding-left:8px;padding-right:8px}
+
+/* ---------- radio ---------- */
+.radio{display:flex;flex-direction:column;min-height:0}
+.now{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;flex:none}
+.now .lg{width:52px;height:52px;font-size:20px}
+.now .t1{font-size:26px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now .t2{font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now .hb{position:relative;z-index:1;font-family:"Barlow Condensed",sans-serif;text-shadow:none}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:10px 0 8px;border-radius:6px;overflow:hidden;border:1px solid #000;flex:none;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.8)}
+.tab{appearance:none;font:inherit;font-size:15px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;
+  color:var(--engrave-dim);background:#121315;border:0;padding:9px 8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.tab+.tab{border-left:1px solid #000}
+.tab[aria-selected=true]{color:#0b0b0c;background:var(--vfd);box-shadow:0 0 12px rgba(111,243,214,.45)}
+.tab .n{font-family:"VT323",monospace;font-size:17px;opacity:.8}
+.cat-f{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:8px;flex:none}
+.cat-f.all{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr)}
+.cat-f select{display:none;width:100%}
+.cat-f.all select{display:block}
+.cat-f input[type=search]{font:inherit;font-size:16px;color:var(--engrave);background:#121315;border:1px solid #000;border-radius:4px;padding:6px 10px;min-width:0;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.8)}
+.cat-info{font-family:"VT323",monospace;font-size:18px;color:var(--vfd);text-shadow:0 0 4px rgba(111,243,214,.6);margin-bottom:6px;flex:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-list{flex:1;min-height:0;background:#0a0b0c;border-radius:6px;padding:6px;box-shadow:inset 0 3px 8px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.06);display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:6px;overflow:auto;padding-right:4px;align-content:start}
+.cat-list::-webkit-scrollbar{width:8px}.cat-list::-webkit-scrollbar-thumb{background:#2d2f33;border-radius:4px}
+.cat-more{grid-column:1/-1;justify-self:center;margin:6px 0}
+.st{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:9px;align-items:center;background:#121315;border:1px solid #000;border-radius:5px;
+  padding:6px 8px;cursor:pointer;transition:border-color .1s,background .1s;text-align:left}
+.st:hover{background:#18191c;border-color:#3a3c40}
+.st.on{border-color:var(--vfd);box-shadow:0 0 8px rgba(111,243,214,.35)}
+.st.busy{opacity:.6;cursor:progress}
+.lg{width:38px;height:38px;border-radius:4px;background:#1c1d20 center/cover no-repeat;display:grid;place-items:center;font-size:15px;color:var(--engrave-dim);flex:none;text-shadow:none}
+.st .nm{font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .mt{font-size:11.5px;letter-spacing:.6px;color:var(--engrave-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st.on .mt{color:var(--vfd)}
+.st .act{display:flex;gap:4px;align-items:center}
+.st .pl{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#0b0c0d;background:var(--vfd);opacity:0;transition:opacity .1s}
+.st:hover .pl,.st:focus-visible .pl,.st.on .pl{opacity:1}
+.st .fav{font:inherit;font-size:17px;line-height:1;width:30px;height:28px;color:var(--engrave-dim);background:transparent;border:1px solid transparent;border-radius:4px;cursor:pointer}
+.st .fav:hover{color:#ffcf5a;border-color:#000;background:var(--btn1)}
+.st .fav.yes{color:#ffcf5a;cursor:default;background:transparent;border-color:transparent}
+.hint{margin-top:8px;flex:none;line-height:1.4}
+.now{grid-template-columns:52px minmax(0,1fr) auto auto}
+.qbox{font-size:17px;line-height:1.05;text-align:right;white-space:nowrap;padding:0 6px 0 10px;border-left:1px solid rgba(111,243,214,.18)}
+.qbox:empty{display:none}
+.qbox .big{font-size:22px}
+.ind span[data-i=q].on{color:#ffe38a;text-shadow:0 0 5px rgba(255,227,138,.8)}
+.cat-f.my{grid-template-columns:minmax(0,1fr) auto}
+.cat-f .edit{display:none;min-height:0;padding:4px 12px;font-size:12.5px}
+.cat-f.my .edit{display:inline-flex}
+.cat-f .edit.on{color:#0b0b0c;background:var(--vfd)}
+.st.ed{cursor:default;grid-template-columns:38px minmax(0,1fr) auto}
+.st.ed:hover{background:#121315}
+.st.ed input{font:inherit;font-size:15px;font-weight:600;width:100%;min-width:0;color:var(--engrave);background:#0b0c0d;border:1px solid #2d2f33;border-radius:4px;padding:4px 7px}
+.st.ed input:focus{outline:none;border-color:var(--vfd)}
+.st .del{font:inherit;font-size:13px;font-weight:600;letter-spacing:.8px;color:var(--engrave-dim);background:var(--btn1);border:1px solid #000;border-radius:4px;padding:5px 8px;cursor:pointer;white-space:nowrap}
+.st .del:hover{color:#ff8a80}
+.st .del.sure{color:#fff;background:#b3261e}
+.hint b{color:var(--vfd);font-weight:600}
+.sw{appearance:none;font:inherit;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--engrave-dim);cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;background:#121315;border:1px solid #000;border-radius:999px;padding:4px 10px 4px 6px}
+.sw .knb{width:26px;height:14px;border-radius:7px;background:#2a2d2f;position:relative;box-shadow:inset 0 1px 2px #000;flex:none}
+.sw .knb::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#8a8f96;transition:left .15s}
+.sw.on .knb{background:#1f6b4a}.sw.on .knb::after{left:14px;background:#e9fff6}
+.sw:hover{color:var(--engrave)}
+
+/* ---------- now playing: radio display <-> cassette deck (roll-up) ---------- */
+.nowwrap{position:relative;flex:none;height:70px;perspective:1100px;transition:height .7s cubic-bezier(.2,.8,.2,1)}
+.nowwrap.tape{height:300px}
+.nowwrap>.now{position:absolute;left:0;right:0;top:0;height:70px;transform-origin:50% 0;backface-visibility:hidden;
+  transition:transform .55s cubic-bezier(.4,0,.2,1),opacity .45s}
+.nowwrap.tape>.now{transform:rotateX(92deg);opacity:0;pointer-events:none}
+.deck{position:absolute;inset:0;display:flex;flex-direction:column;gap:9px;transform-origin:50% 100%;backface-visibility:hidden;
+  transform:rotateX(-92deg);opacity:0;pointer-events:none;visibility:hidden;
+  transition:transform .75s cubic-bezier(.2,.8,.2,1) .12s,opacity .45s .12s,visibility 0s .9s}
+.nowwrap.tape .deck{transform:none;opacity:1;pointer-events:auto;visibility:visible;transition:transform .75s cubic-bezier(.2,.8,.2,1) .12s,opacity .45s .12s,visibility 0s}
+.deckwin{position:relative;flex:1;min-height:0;border-radius:10px;background:linear-gradient(180deg,#050506,#0e0f11);border:1px solid #000;
+  box-shadow:inset 0 4px 12px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.08)}
+.deckwin canvas{position:absolute;left:6px;top:6px;width:calc(100% - 12px);height:calc(100% - 12px);display:block;cursor:pointer}
+[data-theme=hrom] .deckwin{box-shadow:inset 0 4px 12px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.85)}
+.dctl{display:grid;grid-template-columns:auto auto auto auto minmax(0,1fr) auto;gap:7px;align-items:center;flex:none}
+.dctl .hb{min-height:34px;min-width:40px;padding:4px 8px;font-size:15px;letter-spacing:0}
+.dctl .hb.on{color:#0b0b0c;background:var(--vfd);box-shadow:0 0 10px rgba(111,243,214,.45),0 3px 0 #000}
+.dseek{display:flex;flex-direction:column;gap:2px;min-width:0;padding:3px 10px 4px}
+.dseek .cnt{display:flex;justify-content:space-between;gap:8px;font-size:17px;line-height:1;white-space:nowrap}
+.dseek .cnt .n{overflow:hidden;text-overflow:ellipsis}
+.dseek input{width:100%;margin:0;height:14px;position:relative;z-index:1;cursor:pointer}
+/* music tab */
+.tabs{grid-template-columns:1fr 1fr 1fr}
+.tab{font-size:14px;letter-spacing:1px;gap:6px;white-space:nowrap}
+.cat-f .mb{display:none;min-height:0;padding:4px 11px;font-size:12.5px}
+.cat-f.mus{grid-template-columns:minmax(0,1fr) auto auto auto}
+.cat-f.mus .mb{display:inline-flex}
+.cat-info .crumb{cursor:pointer}.cat-info .crumb:hover{text-decoration:underline}
+.st .lg.num{font-family:"VT323",monospace;font-size:18px;color:var(--engrave-dim);background:#0c0d0f}
+.st.on .lg.num{color:#0b0b0c;background:var(--vfd)}
+.lg.num{position:relative;overflow:hidden}
+.lg.num img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s;border-radius:4px}
+.lg.num.art img{opacity:1}.lg.num.art span{visibility:hidden}
+.st.on .lg.num.art{box-shadow:0 0 0 2px var(--vfd),0 0 10px rgba(111,243,214,.5)}
+.st .lg.fold{font-size:20px;background:#1a1b1e}
+.st.dir .nm{color:var(--plate-text)}
+.st.up .lg{font-size:20px}
+.mus-empty{grid-column:1/-1;justify-self:center;align-self:center;text-align:center;padding:30px 10px;display:grid;gap:14px;justify-items:center;
+  color:var(--engrave-dim);font-size:16px;line-height:1.4}
+/* folder dialog */
+#dirDlg{width:min(820px,94vw)}
+.droots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.droots .hb{min-height:30px;padding:4px 10px;font-size:12px;letter-spacing:.6px;text-transform:none}
+.droots .hb.rec{color:#ffcf5a}
+.dpath{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:left;margin-bottom:8px;padding:6px 12px}
+.dpath bdi{direction:ltr}
+.dlist{height:min(46vh,420px);flex:none}
+.dbar{margin-top:10px;flex-wrap:nowrap}
+.dbar .pick{color:#0b0b0c;background:var(--vfd);box-shadow:0 0 12px rgba(111,243,214,.45),0 3px 0 #000}
+.dbar .pick:disabled{background:var(--btn2);color:var(--btn-text);box-shadow:none}
+.dbar .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+/* ---------- Denon menu dialog ---------- */
+dialog{border:0;padding:0;background:transparent;color:inherit;width:min(760px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.menu{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start}
+.netvfd{font-size:21px;line-height:1.12;min-height:206px}
+.netvfd .hd{font-size:17px;letter-spacing:2px;margin-bottom:4px}
+.netvfd .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.netvfd .ln.cur{background:rgba(111,243,214,.16);border-radius:2px}
+.pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,50px);gap:8px;justify-content:center}
+.pad .hb{padding:0;font-size:18px}
+
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(14px);opacity:0;transition:.2s;
+  font-family:"VT323",monospace;font-size:20px;color:var(--vfd);background:#020605ee;border:1px solid #0f2a25;
+  padding:6px 16px;border-radius:6px;text-shadow:0 0 5px rgba(111,243,214,.8);pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- small / short screens: stack, page may scroll ---------- */
+@media (max-width:1500px){.modes .hb{font-size:11px;letter-spacing:.3px;padding:6px 4px;gap:5px}}
+@media (max-width:1180px),(max-height:760px){
+  body{overflow:auto}
+  .rack{height:auto}
+  .main{grid-template-columns:1fr}
+  .recv{grid-template-columns:auto minmax(0,1fr) auto}
+  .recv .inputs{grid-column:1/-1}
+  .meter{aspect-ratio:1.6}
+  .radio{height:min(720px,90vh)}
+}
+@media (max-width:760px){
+  .unit{padding:12px 30px}
+  .unit::before,.unit::after{width:20px}
+  .screw.tl,.screw.bl{left:5px}.screw.tr,.screw.br{right:5px}
+  .recv{grid-template-columns:1fr;justify-items:stretch}
+  .recv .inputs{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}
+  .pw{flex-direction:row;justify-content:center}
+  .meters,.under,.play,.menu{grid-template-columns:1fr}
+  .modes{grid-template-columns:repeat(3,1fr)}
+  .side{border-left:0;padding-left:0;box-shadow:none}
+  .cat-f.all{grid-template-columns:1fr 1fr}.cat-f.all input[type=search]{grid-column:1/-1}
+  .mainvfd .src{font-size:32px}.mainvfd .vol{font-size:36px}
+}
+@media (max-width:760px){.nowwrap.tape{height:260px}.dctl{grid-template-columns:repeat(4,auto) minmax(0,1fr)}.dctl #mShuf{display:none}
+  .cat-f.mus{grid-template-columns:1fr auto auto auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="rack">
+
+<!-- ===================== RECEIVER + INPUTS ===================== -->
+<section class="unit" aria-label="Risiver">
+  <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+  <div class="row hdr">
+    <span class="badge">DENON <small>AVR-X1000 · STUDIO CONTROL</small></span><span class="spacer"></span>
+    <button class="sw" id="themeBtn" title="Promeni temu: crna / hrom"><span class="knb"></span><span id="themeTxt">Tema: crna</span></button>
+    <span class="lbl" style="margin-left:10px">Veza</span><span class="led" id="connLed"></span>
+  </div>
+  <div class="recv">
+    <div class="pw">
+      <button class="hb pwbtn" id="pwBtn" title="Uključi / Standby" aria-label="Uključi ili standby">⏻</button>
+      <div class="row" style="gap:6px"><span class="led" id="pwLed"></span><span class="lbl">On</span></div>
+      <button class="hb mute" id="muteBtn"><span class="led"></span>Mute</button>
+    </div>
+    <div class="vfd mainvfd">
+      <div class="l1"><div class="src" id="vSrc">----</div><div class="vol" id="vVol">--.-</div></div>
+      <div class="l2" id="vLine2">&nbsp;</div>
+      <div class="ind" id="vInd">
+        <span data-i="net">NET</span><span data-i="radio">RADIO SRV</span><span data-i="dolby">DOLBY</span>
+        <span data-i="dts">DTS</span><span data-i="pcm">PCM</span><span data-i="dyneq">DYN EQ</span>
+        <span data-i="mute" class="warn">MUTE</span><span data-i="q" style="margin-left:auto"></span><span data-i="db"></span>
+      </div>
+    </div>
+    <div class="knobwrap">
+      <div class="knob" id="knob" role="slider" tabindex="0" aria-label="Jačina zvuka" aria-valuemin="0" aria-valuemax="98">
+        <div class="ptr"></div>
+      </div>
+      <span class="lbl">Volume</span>
+    </div>
+    <div class="grid inputs" id="inputs" aria-label="Izbor ulaza"></div>
+  </div>
+</section>
+
+<div class="main">
+<div class="col">
+
+<!-- ===================== VU METER BRIDGE ===================== -->
+<section class="unit vuunit" aria-label="VU metri">
+  <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+  <div class="row hdr"><span class="badge">STEREO VU METER <small>MODEL VU-2</small></span>
+    <span class="spacer"></span><span class="lbl" id="vuSrcTxt" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">izvor: —</span><span class="led" id="vuLed"></span>
+    <span class="lbl" style="margin-left:14px">VU</span><select id="vuSkin" class="mini" aria-label="Izgled VU metra"></select>
+    <span class="lbl">EQ</span><select id="eqStyle" class="mini" aria-label="Izgled ekvilajzera"></select></div>
+  <div class="vubody">
+    <div class="meters">
+      <div class="meter"><canvas id="vuL" width="640" height="400" aria-label="VU levi kanal"></canvas>
+        <div class="peak"><span>PEAK</span><span class="led" id="pkL"></span></div></div>
+      <div class="meter"><canvas id="vuR" width="640" height="400" aria-label="VU desni kanal"></canvas>
+        <div class="peak"><span>PEAK</span><span class="led" id="pkR"></span></div></div>
+    </div>
+    <div class="under">
+      <div class="vfd spec"><canvas id="spec" width="900" height="200" aria-label="Spektar"></canvas></div>
+      <div class="ctrls">
+        <span class="lbl">Izvor</span>
+        <select id="vuSrc">
+          <option value="auto">Prati Denon (automatski)</option>
+          <option value="input">Ulaz računara (mikrofon / monitor)</option>
+          <option value="off">Isključeno</option>
+        </select>
+        <span class="lbl" id="devLbl" hidden>Uređaj</span><select id="devSel" hidden><option>—</option></select>
+        <span class="lbl">Kašnjenje</span><div class="rng"><input type="range" id="delay" min="0" max="8" step="0.1" value="2"><span class="val" id="delayV">2.0s</span></div>
+        <span class="lbl">0 VU =</span><div class="rng"><input type="range" id="cal" min="-22" max="-2" step="1" value="-10"><span class="val" id="calV">-10dBFS</span></div>
+      </div>
+    </div>
+    <div class="vuon" id="vuOn"><button class="hb" id="vuStart" style="font-size:15px;padding:12px 20px"><span class="led a"></span>Uključi VU metre</button></div>
+  </div>
+</section>
+
+<!-- ===================== SURROUND + TRANSPORT ===================== -->
+<section class="unit" aria-label="Zvučni režim i reprodukcija">
+  <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+  <div class="row hdr"><span class="badge">SURROUND MODE</span><span class="spacer"></span>
+    <button class="hb" id="dynBtn" style="min-height:28px;padding:4px 10px;font-size:12px"><span class="led"></span>Dynamic EQ</button></div>
+  <div class="play">
+    <div class="grid modes" id="modes"></div>
+    <div class="side">
+      <div class="transport">
+        <button class="hb" data-cmd="NS9E" aria-label="Prethodna" title="Prethodna">⏮</button>
+        <button class="hb" data-cmd="NS9A" aria-label="Pusti" title="Pusti">▶</button>
+        <button class="hb" data-cmd="NS9B" aria-label="Pauza" title="Pauza">❚❚</button>
+        <button class="hb" data-cmd="NS9C" aria-label="Stop" title="Stop">⏹</button>
+        <button class="hb" data-cmd="NS9D" aria-label="Sledeća" title="Sledeća">⏭</button>
+      </div>
+      <div class="transport">
+        <button class="hb" data-cmd="MSQUICK1" title="Quick Select 1">Q1</button><button class="hb" data-cmd="MSQUICK2" title="Quick Select 2">Q2</button>
+        <button class="hb" data-cmd="MSQUICK3" title="Quick Select 3">Q3</button><button class="hb" data-cmd="MSQUICK4" title="Quick Select 4">Q4</button>
+        <button class="hb" id="menuBtn" title="Strelice i OK — kao na daljinskom">☰ Meni</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ===================== RADIO (one simple panel) ===================== -->
+<section class="unit radio" aria-label="Radio">
+  <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+  <div class="row hdr"><span class="badge">RADIO</span><span class="spacer"></span>
+    <button class="sw" id="ytToggle" role="switch" aria-checked="false"
+      title="YTuner server — potreban da bi „Moje stanice“ bile vidljive i u Denonovom meniju (Internet Radio)"><span class="knb"></span><span class="led" id="ytLed"></span><span id="ytTxt">Denon lista</span></button>
+  </div>
+  <div class="nowwrap" id="nowWrap">
+  <div class="vfd now" aria-live="polite">
+    <div class="lg" id="nowLg">♪</div>
+    <div style="min-width:0"><div class="t1" id="nowT1">—</div><div class="t2 dim" id="nowT2">&nbsp;</div></div>
+    <div class="qbox" id="nowQ" title="Kvalitet zapisa — pročitano iz samog strima"></div>
+    <button class="hb" id="stopBtn" title="Zaustavi radio na Denonu" disabled>⏹ Stop</button>
+  </div>
+  <div class="deck" id="deck" aria-label="Kasetofon" aria-hidden="true">
+    <div class="deckwin"><canvas id="deckCv" role="img" aria-label="Kaseta"></canvas></div>
+    <div class="dctl">
+      <button class="hb" id="mPrev" title="Prethodna pesma (ili ispočetka)" aria-label="Prethodna">⏮</button>
+      <button class="hb" id="mPlay" title="Pauza" aria-label="Pauza">❚❚</button>
+      <button class="hb" id="mNext" title="Sledeća pesma" aria-label="Sledeća">⏭</button>
+      <button class="hb" id="mEject" title="Izbaci kasetu — zaustavi muziku i vrati radio" aria-label="Izbaci kasetu">⏏</button>
+      <div class="vfd dseek"><div class="cnt"><span id="mTime">0:00 / 0:00</span><span class="n dim" id="mIdx"></span></div>
+        <input type="range" id="mSeek" min="0" max="1" step="1" value="0" aria-label="Pozicija u pesmi"></div>
+      <button class="hb" id="mShuf" title="Nasumičan redosled" aria-label="Nasumično">🔀</button>
+    </div>
+  </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabMy" aria-selected="true">★ Moje stanice <span class="n" id="tabMyN"></span></button>
+    <button class="tab" role="tab" id="tabAll" aria-selected="false">⌕ Sve stanice <span class="n" id="tabAllN"></span></button>
+    <button class="tab" role="tab" id="tabMus" aria-selected="false">📼 Muzika <span class="n" id="tabMusN"></span></button>
+  </div>
+  <div class="cat-f" id="catF">
+    <input type="search" id="catQ" placeholder="Traži po imenu…" aria-label="Traži stanicu">
+    <button class="hb edit" id="editBtn" title="Preimenuj ili obriši svoje stanice">✎ Uredi</button>
+    <button class="hb mb" id="musAll" title="Pusti sve pesme iz ove fascikle redom">▶ Sve</button>
+    <button class="hb mb" id="musShuf" title="Pusti sve pesme iz ove fascikle nasumično">🔀</button>
+    <button class="hb mb" id="musDirBtn" title="Izaberi odakle se pušta muzika">📁 Fascikla</button>
+    <select id="catCc" aria-label="Zemlja"><option value="">Sve zemlje</option></select>
+    <select id="catTag" aria-label="Žanr"><option value="">Svi žanrovi</option></select>
+  </div>
+  <div class="cat-info" id="catInfo">&nbsp;</div>
+  <div class="cat-list" id="catList"></div>
+  <div class="lbl hint" id="hint"><b>Klikni na stanicu</b> i ona odmah svira na Denonu.</div>
+</section>
+
+</div>
+</div>
+
+<!-- ===================== DENON MENU (advanced, on demand) ===================== -->
+<dialog id="menuDlg" aria-label="Denon meni">
+  <section class="unit">
+    <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+    <div class="row hdr"><span class="badge">DENON MENI <small>KAO NA DALJINSKOM</small></span><span class="spacer"></span>
+      <button class="hb" id="menuClose" style="min-height:28px;padding:4px 10px">✕ Zatvori</button></div>
+    <div class="menu">
+      <div class="vfd netvfd" id="netVfd"><div class="hd dim">NEMA PODATAKA</div></div>
+      <div class="pad">
+        <span></span><button class="hb" data-nav="up" aria-label="Gore">▲</button><span></span>
+        <button class="hb" data-nav="left" aria-label="Levo / nazad">◀</button>
+        <button class="hb" data-nav="enter" style="font-size:13px">OK</button>
+        <button class="hb" data-nav="right" aria-label="Desno">▶</button>
+        <button class="hb" data-cmd="MNRTN" style="font-size:12px">BACK</button>
+        <button class="hb" data-nav="down" aria-label="Dole">▼</button>
+        <button class="hb" data-cmd="MNOPT" style="font-size:12px">OPT</button>
+      </div>
+    </div>
+  </section>
+</dialog>
+<dialog id="dirDlg" aria-label="Izbor fascikle sa muzikom">
+  <section class="unit">
+    <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
+    <div class="row hdr"><span class="badge">MUZIKA <small>ODAKLE SE PUŠTA</small></span><span class="spacer"></span>
+      <button class="hb" id="dirClose" style="min-height:28px;padding:4px 10px">✕ Zatvori</button></div>
+    <div class="droots" id="dirRoots"></div>
+    <div class="vfd dpath" id="dirPath"><bdi>—</bdi></div>
+    <div class="cat-list dlist" id="dirList"></div>
+    <div class="row dbar"><button class="hb" id="dirUp">↰ Gore</button><span class="lbl" id="dirInfo"></span><span class="spacer"></span>
+      <button class="hb pick" id="dirPick">✓ Izaberi ovu fasciklu</button></div>
+  </section>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let ST=null;
+const toastEl=$("#toast");let tt;
+function say(m){toastEl.textContent=m;toastEl.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove("show"),1600);}
+async function cmd(...c){try{await fetch("/api/cmd?"+c.map(x=>"c="+encodeURIComponent(x)).join("&"));}catch(e){}setTimeout(poll,180);}
+function press(b){b.classList.add("press");setTimeout(()=>b.classList.remove("press"),120);}
+const esc=t=>(t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+/* ================= status ================= */
+let inputsSig="";
+function renderInputs(list){
+  const sig=list.map(i=>i.code+i.name).join("|");
+  if(sig===inputsSig)return;inputsSig=sig;
+  const box=$("#inputs");box.innerHTML="";
+  const rows=list.length>12?3:2;box.style.setProperty("--cols",Math.max(1,Math.ceil(list.length/rows)));
+  list.forEach(i=>{const b=document.createElement("button");b.className="hb";b.dataset.si=i.code;b.title=i.name;
+    b.innerHTML='<span class="led"></span><span class="tx">'+esc(i.name)+'</span>';
+    b.onclick=()=>{press(b);cmd("SI"+i.code);say(i.name);};box.appendChild(b);});
+}
+const MODES=[["AUTO",["AUTO"]],["MOVIE",["MOVIE","DOLBY","DTS","MULTI CH IN"]],["MUSIC",["MUSIC"]],["GAME",["GAME"]],
+  ["STEREO",["STEREO"]],["MCH STEREO",["MCH STEREO","MULTI CH STEREO"]],["DIRECT",["DIRECT"]],["PURE DIRECT",["PURE DIRECT"]],
+  ["VIRTUAL",["VIRTUAL"]],["ROCK ARENA",["ROCK ARENA"]],["JAZZ CLUB",["JAZZ CLUB"]],["MATRIX",["MATRIX"]]];
+(function(){const box=$("#modes");MODES.forEach(([m])=>{const b=document.createElement("button");b.className="hb";b.dataset.ms=m;b.title=m;
+  b.innerHTML='<span class="led"></span>'+m;b.onclick=()=>{press(b);cmd("MS"+m);say(m);};box.appendChild(b);});})();
+function modeMatch(s){if(!s)return null;s=s.toUpperCase().trim();
+  if(s==="MULTI CH STEREO"||s==="MCH STEREO")return"MCH STEREO";
+  if(s==="PURE DIRECT")return"PURE DIRECT";if(s==="DIRECT")return"DIRECT";if(s==="STEREO")return"STEREO";
+  for(const[m,keys]of MODES){if(keys.some(k=>s===k))return m;}return null;}
+
+function absVol(db){return db==null?null:db+80;}
+function fmt1(v){return v==null?"--.-":v.toFixed(1);}
+function poll(){fetch("/api/status").then(r=>r.json()).then(j=>{ST=j.st;try{render(j.ok);}catch(e){jsErr(e,"render");}}).catch(()=>{try{render(false);}catch(e){}});}
+function render(ok){
+  $("#connLed").className="led "+(ok?"g":"r");
+  if(!ST)return;const st=ST;
+  $("#pwLed").className="led "+(st.power?"g":(st.power===false?"r":""));
+  renderInputs(st.inputs||[]);
+  $$("#inputs [data-si]").forEach(b=>b.querySelector(".led").className="led "+(b.dataset.si===st.input_raw&&st.power?"g":""));
+  const on=st.power!==false;
+  $("#vSrc").textContent=on?(st.input||"----").toUpperCase():"STANDBY";
+  const av=absVol(st.volume);
+  if(!knobDrag){$("#vVol").textContent=on?fmt1(av):"";setKnob(av);}
+  let l2="";const mu=on&&st.music&&st.music.active?st.music:null;
+  if(!on)l2="";
+  else if(mu)l2=(mu.state==="PLAYING"?"▶ ":"❚❚ ")+(mu.artist?mu.artist+" — ":"")+mu.title;
+  else if(st.isNet&&st.station)l2="♪ "+st.station.name+(st.nse[1]&&st.nse[1]!==st.station.name&&!/empty/i.test(st.nse[1])?" · "+st.nse[1]:"");
+  else if(st.isNet&&(st.nse[1]||st.nse[2]))l2="♪ "+[st.nse[1],st.nse[2]].filter(Boolean).join(" · ");
+  else l2=st.surround||"";
+  $("#vLine2").textContent=l2||" ";
+  const s=(st.surround||"").toUpperCase();
+  const ind={net:on&&st.isNet,radio:st.ytuner&&st.ytuner.running,dolby:on&&s.includes("DOLBY"),dts:on&&s.includes("DTS"),
+    pcm:on&&/STEREO|MULTI CH IN|PCM/.test(s)&&!s.includes("DOLBY"),dyneq:on&&st.dynEq,mute:on&&st.mute};
+  const qq=on&&((st.station&&st.station.q)||(mu&&mu.q));
+  $$("#vInd [data-i]").forEach(e=>{const k=e.dataset.i;if(k==="q"){e.textContent=qq?qShort(qq):"";e.classList.toggle("on",!!qq);}else if(k==="db"){e.textContent=on&&st.volume!=null?st.volume.toFixed(1)+" dB":"";e.classList.toggle("on",on);}else e.classList.toggle("on",!!ind[k]);});
+  $("#muteBtn").classList.toggle("on",!!st.mute);
+  $("#dynBtn .led").className="led "+(st.dynEq?"a":"");
+  const mm=modeMatch(st.surround);
+  $$("#modes [data-ms]").forEach(b=>b.querySelector(".led").className="led "+(on&&b.dataset.ms===mm?"a":""));
+  renderNet(st);renderNow(st);renderTape(st);renderYt(st.ytuner);
+  meterPower=on?1:0.18;
+  if(vuMode==="auto")autoFollow();
+}
+function renderNet(st){
+  const v=$("#netVfd");
+  if(!st.isNet||!st.power){v.innerHTML='<div class="hd dim">'+(st.power?"IZABERI MREŽNI ULAZ (RADIO / USB / SERVER)":"STANDBY")+'</div>';return;}
+  if(st.input_raw==="SERVER"&&st.station){v.innerHTML='<div class="hd">NOW PLAYING · DENON STUDIO</div><div class="ln cur">▶ '+esc(st.station.name)+'</div><div class="ln">&nbsp;</div><div class="ln dim">zaustavi: izaberi drugi ulaz ili drugu stanicu</div>';return;}
+  let h='<div class="hd">'+esc(st.nse[0]||"NETWORK")+'</div>';
+  for(let i=1;i<=8;i++){const t=st.nse[i];if(t===undefined)continue;const cur=(st.nseFlags[i]&8)?" cur":"";
+    h+='<div class="ln'+cur+'">'+(t?esc(t):"&nbsp;")+'</div>';}
+  v.innerHTML=h;
+}
+$("#pwBtn").onclick=e=>{press(e.currentTarget);const on=ST&&ST.power;cmd(on?"PWSTANDBY":"PWON");say(on?"Standby":"Uključujem");};
+$("#muteBtn").onclick=e=>{press(e.currentTarget);const m=ST&&ST.mute;cmd(m?"MUOFF":"MUON");say(m?"Mute isključen":"Mute");};
+$("#dynBtn").onclick=e=>{press(e.currentTarget);const d=ST&&ST.dynEq;cmd(d?"PSDYNEQ OFF":"PSDYNEQ ON");say("Dynamic EQ "+(d?"OFF":"ON"));};
+$$("[data-cmd]").forEach(b=>b.addEventListener("click",()=>{press(b);cmd(b.dataset.cmd);}));
+const NAV={up:["NS90","MNCUP"],down:["NS91","MNCDN"],left:["NS92","MNCLT"],right:["NS93","MNCRT"],enter:["NS94","MNENT"]};
+$$("[data-nav]").forEach(b=>b.addEventListener("click",()=>{press(b);const n=NAV[b.dataset.nav];cmd(ST&&ST.isNet?n[0]:n[1]);}));
+const dlg=$("#menuDlg");
+$("#menuBtn").onclick=()=>{if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");};
+$("#menuClose").onclick=()=>dlg.close();
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close();});
+
+/* ================= volume knob ================= */
+const knob=$("#knob");let knobDrag=false,knobVal=null,lastSent=0;
+function vmax(){return ST?ST.volmax+80:98;}
+function setKnob(av){if(av==null)return;knobVal=av;const a=-135+270*Math.min(1,av/vmax());
+  knob.style.transform="rotate("+a+"deg)";knob.setAttribute("aria-valuenow",av.toFixed(1));}
+function mvCode(av){av=Math.max(0,Math.min(vmax(),Math.round(av*2)/2));const c=Math.round(av*10);
+  return c%10===0?String(Math.round(av)).padStart(2,"0"):String(c).padStart(3,"0");}
+function sendVol(force){const n=performance.now();if(!force&&n-lastSent<140)return;lastSent=n;cmd("MV"+mvCode(knobVal));}
+let sy=0,sv=0;
+knob.addEventListener("pointerdown",e=>{knobDrag=true;knob.setPointerCapture(e.pointerId);sy=e.clientY;sv=knobVal??30;});
+knob.addEventListener("pointermove",e=>{if(!knobDrag)return;const nv=Math.max(0,Math.min(vmax(),sv+(sy-e.clientY)*0.25));
+  setKnob(Math.round(nv*2)/2);$("#vVol").textContent=fmt1(knobVal);sendVol(false);});
+const endDrag=()=>{if(!knobDrag)return;knobDrag=false;sendVol(true);say("Jačina "+fmt1(knobVal));};
+knob.addEventListener("pointerup",endDrag);knob.addEventListener("pointercancel",endDrag);
+knob.addEventListener("wheel",e=>{e.preventDefault();cmd(e.deltaY<0?"MVUP":"MVDOWN");},{passive:false});
+knob.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="ArrowRight"){cmd("MVUP");e.preventDefault();}
+  if(e.key==="ArrowDown"||e.key==="ArrowLeft"){cmd("MVDOWN");e.preventDefault();}});
+
+/* ================= radio: YTuner switch (Denon's own station list) ================= */
+function renderYt(yt){if(!yt)return;
+  $("#ytLed").className="led "+(yt.running?(yt.web?"g":"a"):"");
+  const sw=$("#ytToggle");sw.classList.toggle("on",yt.running);sw.setAttribute("aria-checked",yt.running);
+  $("#ytTxt").textContent="Denon lista "+(yt.running?(yt.web?"uključena":"pokreće se…"):"isključena");
+  const log=(yt.log&&yt.log.length)?"\n\nPoslednje poruke:\n"+yt.log.slice(-6).join("\n"):"";
+  sw.title="YTuner server — potreban da bi „Moje stanice“ bile vidljive i u Denonovom meniju (Internet Radio)."+(yt.running?" PID "+yt.pid:"")+log;
+}
+async function ytAct(a){try{const r=await fetch("/api/ytuner?a="+a);const j=await r.json();say(j.msg||a);renderYt(j.yt);}catch(e){say("Greška");}}
+$("#ytToggle").onclick=()=>{const on=ST&&ST.ytuner&&ST.ytuner.running;ytAct(on?"stop":"start");};
+
+/* ================= stream quality ================= */
+const khz=sr=>(sr/1000).toFixed(sr%1000?1:0)+" kHz";
+function qShort(q){return[q.codec,q.br?q.br+"k":"",q.sr?khz(q.sr).replace(" ",""):"",q.ch==1?"MONO":q.ch>=2?"ST":""].filter(Boolean).join(" ");}
+function qBox(q){
+  if(q===undefined)return"";if(q===null)return'<span class="dim">kvalitet…</span>';
+  const l1=[q.codec,q.ch==1?"MONO":q.ch>=2?"STEREO":""].filter(Boolean).join(" · ");
+  const l2=[q.br?q.br+" kbps":"",q.sr?khz(q.sr):""].filter(Boolean).join(" · ");
+  return'<div class="big">'+esc(l1)+'</div><div>'+esc(l2||"—")+'</div>';}
+
+/* ================= radio: now playing ================= */
+let nowUrl=null,nowLogoUrl=null;
+function renderNow(st){
+  const on=st.power!==false,stn=on?st.station:null;
+  let t1,t2,logoUrl=null;
+  if(stn){t1=stn.name;logoUrl=stn.url;
+    const song=st.isNet&&st.nse[1]&&st.nse[1]!==stn.name&&!/empty/i.test(st.nse[1])?st.nse[1]:"";
+    t2=song||(st.input_raw==="SERVER"?"svira na Denonu":"Internet radio na Denonu");}
+  else if(!on){t1="Denon je u standby";t2="izaberi stanicu ispod — Denon se sam uključuje";}
+  else if(st.isNet){t1=st.nse[1]||st.input||"Mrežni ulaz";t2=st.nse[2]||"stanica nije prepoznata";}
+  else{t1="Radio ne svira";t2="sada je ulaz: "+(st.input||"—")+" · izaberi stanicu ispod";}
+  $("#nowT1").textContent=t1;$("#nowT2").textContent=t2;
+  const qh=qBox(stn?stn.q:undefined),qb=$("#nowQ");if(qb.innerHTML!==qh)qb.innerHTML=qh;
+  $("#stopBtn").disabled=!(on&&st.isNet);
+  if(logoUrl!==nowLogoUrl){nowLogoUrl=logoUrl;setLogo($("#nowLg"),logoUrl,stn?stn.name:"♪");}
+  const u=stn?stn.url:null;if(u!==nowUrl){nowUrl=u;markPlaying(u);}
+}
+$("#stopBtn").onclick=async e=>{press(e.currentTarget);
+  if(ST&&ST.input_raw==="SERVER"){try{const j=await (await fetch("/api/stop")).json();say(j.msg||"stop");}catch(_){say("Greška");}setTimeout(poll,300);}
+  else{cmd("NS9C");say("Stop");}};
+
+/* ================= radio: station cards ================= */
+function monogram(el,name){const w=(name||"?").replace(/[^\p{L}\p{N} ]/gu," ").trim().split(/\s+/).filter(Boolean);
+  el.style.backgroundImage="";
+  el.textContent=((w[0]||"?")[0]+(w[1]?w[1][0]:(w[0]||"")[1]||"")).toUpperCase();
+  let h=0;for(const c of name||"")h=(h*31+c.charCodeAt(0))%360;
+  el.style.background="hsl("+h+" 45% 28%)";el.style.color="hsl("+h+" 80% 85%)";el.style.fontWeight="700";}
+function setLogo(el,url,name){
+  if(!url){el.removeAttribute("style");el.textContent="♪";return;}
+  monogram(el,name);
+  const im=new Image();im.onload=()=>{if(el.dataset.lu!==url)return;el.textContent="";el.style.background="#fff center/contain no-repeat";el.style.backgroundImage='url("'+im.src+'")';};
+  el.dataset.lu=url;im.src="/logo?u="+encodeURIComponent(url);}
+let stationList=[],myUrls=new Set(),radioTab="my";
+function card(s,catalog){
+  const d=document.createElement("div");d.className="st";d.dataset.u=s.url;d.tabIndex=0;d.setAttribute("role","button");
+  d.title="Klikni da pustiš „"+s.name+"“ na Denonu";
+  const meta=catalog?[s.cat,s.codec&&(s.codec+(s.br?" "+s.br+"k":""))].filter(Boolean).join(" · "):(s.cat||"");
+  d.innerHTML='<div class="lg"></div><div style="min-width:0"><div class="nm"></div><div class="mt"></div></div><div class="act"><span class="pl" aria-hidden="true">▶</span></div>';
+  d.querySelector(".nm").textContent=s.name;const mt=d.querySelector(".mt");mt.textContent=meta;d.dataset.meta=meta;
+  setLogo(d.querySelector(".lg"),s.url,s.name);
+  d.onclick=()=>playOnDenon(s,d);
+  d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();playOnDenon(s,d);}};
+  if(catalog){
+    const f=document.createElement("button");f.className="fav";
+    const setFav=()=>{const y=myUrls.has(s.url);f.classList.toggle("yes",y);f.textContent=y?"★":"☆";
+      f.title=y?"Već je u Mojim stanicama":"Dodaj u Moje stanice";f.setAttribute("aria-label",f.title);};
+    setFav();
+    f.onclick=async e=>{e.stopPropagation();if(myUrls.has(s.url))return;f.disabled=true;
+      try{const j=await (await fetch("/api/rb/add?u="+encodeURIComponent(s.url)+"&n="+encodeURIComponent(s.name))).json();
+        if(j.ok){myUrls.add(s.url);say("★ "+s.name+" — dodato u Moje stanice");loadMy();}else say(j.msg||"Nije dodato");}
+      catch(_){say("Greška");}
+      f.disabled=false;setFav();};
+    d.querySelector(".act").appendChild(f);}
+  if(s.url===nowUrl)d.classList.add("on");
+  return d;}
+function markPlaying(url){$$("#catList .st").forEach(e=>{const on=!!url&&e.dataset.u===url;e.classList.toggle("on",on);
+  if(!e.classList.contains("busy"))e.querySelector(".mt").textContent=on?"▶ svira sada":e.dataset.meta;});}
+
+/* ================= play on Denon (DLNA) ================= */
+async function playOnDenon(s,el){
+  if(el&&el.classList.contains("busy"))return;
+  unlockAudio();$("#vuOn").hidden=true;
+  if(el){el.classList.add("busy");el.querySelector(".mt").textContent="šaljem na Denon…";}
+  say("Šaljem na Denon: "+s.name);
+  try{const j=await (await fetch("/api/play?u="+encodeURIComponent(s.url)+"&n="+encodeURIComponent(s.name))).json();
+    say(j.msg||"?");
+    if(j.ok){if(vuMode!=="auto"){$("#vuSrc").value="auto";setVuMode("auto");}nowUrl=s.url;setTimeout(poll,800);}
+  }catch(_){say("Greška — Denon Studio server ne odgovara");}
+  if(el)el.classList.remove("busy");markPlaying(nowUrl);}
+
+/* ================= radio: my stations / catalogue ================= */
+const fold=t=>(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"dj");
+function loadMy(){return fetch("/api/stations").then(r=>r.json()).then(j=>{stationList=j.stations||[];
+  myUrls=new Set(stationList.map(s=>s.url));$("#tabMyN").textContent=stationList.length||"";
+  if(radioTab==="my")renderMy();}).catch(()=>{if(radioTab==="my")$("#catInfo").textContent="Denon Studio server ne odgovara";});}
+let editMode=false;
+function editCard(s){
+  const d=document.createElement("div");d.className="st ed";d.dataset.u=s.url;
+  d.innerHTML='<div class="lg"></div><div style="min-width:0"><input aria-label="Ime stanice"><div class="mt"></div></div><div class="act"><button class="del">🗑 Obriši</button></div>';
+  const inp=d.querySelector("input"),del=d.querySelector(".del");inp.value=s.name;
+  d.querySelector(".mt").textContent=s.src==="bm"?"bookmark — menja se na Denonu":"Enter = sačuvaj novo ime";d.dataset.meta=d.querySelector(".mt").textContent;
+  setLogo(d.querySelector(".lg"),s.url,s.name);
+  if(s.src==="bm"){inp.disabled=true;del.disabled=true;}
+  const saveName=async()=>{const n=inp.value.trim();if(!n||n===s.name){inp.value=s.name;return;}
+    try{const j=await (await fetch("/api/my/rename?u="+encodeURIComponent(s.url)+"&n="+encodeURIComponent(n))).json();
+      say(j.ok?"✎ "+n:(j.msg||"Nije sačuvano"));if(j.ok){s.name=n;loadMy();}else inp.value=s.name;}catch(_){say("Greška");inp.value=s.name;}};
+  inp.onkeydown=e=>{if(e.key==="Enter")inp.blur();if(e.key==="Escape"){inp.value=s.name;inp.blur();}};
+  inp.onblur=saveName;
+  let t=0;del.onclick=async()=>{
+    if(!del.classList.contains("sure")){del.classList.add("sure");del.textContent="Sigurno?";clearTimeout(t);
+      t=setTimeout(()=>{del.classList.remove("sure");del.textContent="🗑 Obriši";},3000);return;}
+    clearTimeout(t);del.disabled=true;
+    try{const j=await (await fetch("/api/my/del?u="+encodeURIComponent(s.url))).json();
+      say(j.ok?"🗑 "+s.name+" — obrisano":(j.msg||"Nije obrisano"));if(j.ok){d.remove();loadMy();}else del.disabled=false;}
+    catch(_){say("Greška");del.disabled=false;}};
+  return d;}
+function setEdit(on){editMode=on;const b=$("#editBtn");b.classList.toggle("on",on);b.textContent=on?"✓ Gotovo":"✎ Uredi";
+  $("#hint").innerHTML=on?"<b>Uređivanje:</b> promeni ime pa Enter · 🗑 Obriši (klikni dvaput da potvrdiš)."
+    :"<b>Klikni na stanicu</b> i ona odmah svira na Denonu.";
+  renderMy();}
+$("#editBtn").onclick=()=>setEdit(!editMode);
+function renderMy(){
+  const q=fold($("#catQ").value.trim()),box=$("#catList");box.innerHTML="";
+  const l=stationList.filter(s=>!q||fold(s.name).includes(q));
+  l.forEach(s=>box.appendChild(editMode?editCard(s):card(s,false)));
+  $("#catInfo").textContent=!stationList.length?"još nemaš svojih stanica — otvori „Sve stanice“ i klikni ☆"
+    :(l.length?(q?l.length+" od "+stationList.length+" stanica":stationList.length+" stanica"):"nema stanice sa tim imenom");
+  markPlaying(nowUrl);}
+const cat={off:0,total:0,seq:0,meta:false};
+async function catLoad(more){
+  const my=++cat.seq;const box=$("#catList");
+  if(!more){cat.off=0;box.innerHTML="";}
+  const old=box.querySelector(".cat-more");if(old)old.remove();
+  $("#catInfo").textContent="tražim…";
+  const qs=new URLSearchParams({name:$("#catQ").value.trim(),cc:$("#catCc").value,tag:$("#catTag").value,order:"votes",offset:cat.off});
+  try{const j=await (await fetch("/api/rb/search?"+qs)).json();if(my!==cat.seq||radioTab!=="all")return;
+    if(!j.ok){$("#catInfo").textContent=j.err||"greška";return;}
+    j.stations.forEach(s=>box.appendChild(card(s,true)));cat.off+=j.stations.length;
+    const n=box.querySelectorAll(".st").length;
+    $("#catInfo").textContent=n?("prikazano "+n+" stanica · najpopularnije prvo"):"nema stanica — probaj drugo ime ili „Sve zemlje“";
+    if(j.stations.length>=60){const b=document.createElement("button");b.className="hb cat-more";b.textContent="Prikaži još";
+      b.onclick=()=>catLoad(true);box.appendChild(b);}
+    markPlaying(nowUrl);
+  }catch(e){if(my===cat.seq)$("#catInfo").textContent="Katalog stanica (radio-browser) nije dostupan";}}
+function loadMeta(){if(cat.meta)return Promise.resolve();cat.meta=true;
+  return fetch("/api/rb/meta").then(r=>r.json()).then(j=>{if(!j.ok){cat.meta=false;return;}
+    cat.total=j.total||0;if(cat.total)$("#tabAllN").textContent=Math.round(cat.total/1000)+"k";
+    const cc=$("#catCc");j.countries.forEach(c=>{const o=document.createElement("option");o.value=c.cc;o.textContent=c.name;cc.appendChild(o);});
+    const tg=$("#catTag");j.tags.forEach(t=>{const o=document.createElement("option");o.value=t.name;o.textContent=t.name;tg.appendChild(o);});
+    if([...cc.options].some(o=>o.value==="RS"))cc.value="RS";}).catch(()=>{cat.meta=false;});}
+async function setTab(t){
+  if((t==="mus")!==(radioTab==="mus"))$("#catQ").value="";
+  radioTab=t;try{localStorage.setItem("ds.tab",t);}catch(e){}
+  $("#tabMy").setAttribute("aria-selected",t==="my");$("#tabAll").setAttribute("aria-selected",t==="all");$("#tabMus").setAttribute("aria-selected",t==="mus");
+  $("#catF").classList.toggle("all",t==="all");$("#catF").classList.toggle("my",t==="my");$("#catF").classList.toggle("mus",t==="mus");if(t!=="my"&&editMode){editMode=false;$("#editBtn").classList.remove("on");$("#editBtn").textContent="✎ Uredi";}
+  $("#catQ").placeholder=t==="my"?"Traži među mojim stanicama…":t==="mus"?"Traži pesmu ili izvođača…":"Traži bilo koju stanicu na svetu…";
+  $("#hint").innerHTML=t==="my"?"<b>Klikni na stanicu</b> i ona odmah svira na Denonu."
+    :t==="mus"?"<b>Klikni na pesmu</b> i ona svira na Denonu — ostale iz fascikle idu posle nje. <b>📁 Fascikla</b> = odakle se pušta."
+    :"<b>Klikni na stanicu</b> i ona odmah svira na Denonu. ☆ = sačuvaj u Moje stanice.";
+  if(t==="my"){cat.seq++;renderMy();}
+  else if(t==="mus"){cat.seq++;$("#catList").innerHTML="";musLoad(musDir);}
+  else{$("#catList").innerHTML="";$("#catInfo").textContent="učitavam katalog…";await loadMeta();if(radioTab==="all")catLoad(false);}
+}
+$("#tabMy").onclick=()=>setTab("my");$("#tabAll").onclick=()=>setTab("all");$("#tabMus").onclick=()=>setTab("mus");
+let catT;$("#catQ").oninput=()=>{if(radioTab==="my")renderMy();else if(radioTab==="mus")renderMus();else{clearTimeout(catT);catT=setTimeout(()=>catLoad(false),400);}};
+["#catCc","#catTag"].forEach(id=>$(id).onchange=()=>catLoad(false));
+let lastTab="";try{lastTab=localStorage.getItem("ds.tab")||"";}catch(e){}
+loadMy().then(()=>{if(lastTab==="mus")setTab("mus");else if(!stationList.length)setTab("all");else setTab("my");});
+loadMeta();
+
+/* ================= VU engine ================= */
+let ac=null,anL,anR,anM,delayNode,srcNode=null,audioEl=null,micStream=null,vuMode="auto",curUrl=null,meterPower=1;
+const bufL=new Float32Array(2048),bufR=new Float32Array(2048);let freq;
+function ensureAudio(){
+  if(ac)return;ac=new (window.AudioContext||window.webkitAudioContext)();
+  delayNode=ac.createDelay(10);delayNode.delayTime.value=+$("#delay").value;
+  const split=ac.createChannelSplitter(2);anL=ac.createAnalyser();anR=ac.createAnalyser();anM=ac.createAnalyser();
+  anL.fftSize=anR.fftSize=2048;anM.fftSize=4096;anM.smoothingTimeConstant=0.6;freq=new Uint8Array(anM.frequencyBinCount);
+  const sink=ac.createGain();sink.gain.value=0;
+  delayNode.connect(split);split.connect(anL,0);split.connect(anR,1);delayNode.connect(anM);
+  anL.connect(sink);anR.connect(sink);anM.connect(sink);sink.connect(ac.destination);
+}
+let elSrc=null;            // MediaElementSource can only be created once per element
+const SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+function getEl(){
+  if(!audioEl){audioEl=new Audio();audioEl.crossOrigin="anonymous";audioEl.preload="none";
+    elSrc=ac.createMediaElementSource(audioEl);
+    const mute=ac.createGain();mute.gain.value=0;elSrc.connect(mute);mute.connect(ac.destination);
+    audioEl.addEventListener("error",()=>{if(curUrl){setSrcTxt("greška strima",false);}});
+    audioEl.addEventListener("playing",()=>{if(curUrl)setSrcTxt(curLabel,true);});
+    audioEl.addEventListener("loadedmetadata",()=>{if(fileMode&&tape.playing)audioEl.currentTime=tapePos();});}
+  return audioEl;
+}
+function unlockAudio(){ // called ONLY from a click -> the browser then allows playback
+  ensureAudio();ac.resume();const el=getEl();
+  if(!curUrl){el.src=SILENT;el.play().catch(()=>{});}
+}
+let curLabel="";
+let fileMode=false;
+function disconnectSrc(){
+  if(fileMode&&delayNode)delayNode.delayTime.value=+$("#delay").value;
+  fileMode=false;
+  if(srcNode&&srcNode!==elSrc){try{srcNode.disconnect();}catch(e){}}
+  if(srcNode===elSrc&&elSrc){try{elSrc.disconnect(delayNode);}catch(e){}}
+  srcNode=null;
+  if(audioEl){audioEl.pause();audioEl.removeAttribute("src");audioEl.preload="none";audioEl.load();}
+  if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+  curUrl=null;
+}
+function playUrl(url,label){
+  if(url===curUrl)return;disconnectSrc();if(!url){setSrcTxt("—",false);return;}
+  ensureAudio();curUrl=url;curLabel=label;const el=getEl();
+  el.src="/stream?u="+encodeURIComponent(url);
+  elSrc.connect(delayNode);srcNode=elSrc;
+  el.play().then(()=>{$("#vuOn").hidden=true;}).catch(err=>{
+    if(err&&err.name==="NotAllowedError")askGesture("Klikni da uključiš VU metre");
+    else setSrcTxt("greška strima",false);});
+  setSrcTxt(label+" · povezivanje…",false);
+}
+async function useInput(){
+  disconnectSrc();ensureAudio();
+  if(!window.isSecureContext||!navigator.mediaDevices){
+    setSrcTxt("ulaz radi samo na http://localhost:8766",false);
+    say("Mikrofon/ulaz: otvori panel na ovom računaru kao localhost:8766");return;}
+  try{
+    const id=$("#devSel").value;
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:id&&id!=="—"?{exact:id}:undefined,
+      echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:2}});
+    srcNode=ac.createMediaStreamSource(micStream);srcNode.connect(delayNode);
+    const lab=micStream.getAudioTracks()[0].label||"ulaz računara";setSrcTxt(lab,true);listDevices();
+  }catch(e){
+    if(e&&e.name==="NotAllowedError"){setSrcTxt("pristup ulazu odbijen",false);
+      say("Odbijeno — klik na ikonicu katanca levo od adrese → dozvoli mikrofon, pa ponovo izaberi");}
+    else if(e&&e.name==="NotFoundError"){setSrcTxt("nema ulaznog uređaja",false);say("Nije nađen mikrofon / ulaz");}
+    else{setSrcTxt("greška ulaza: "+(e&&e.name||"?"),false);}
+  }
+}
+async function listDevices(){try{const d=(await navigator.mediaDevices.enumerateDevices()).filter(x=>x.kind==="audioinput");
+  const sel=$("#devSel"),cur=sel.value;sel.innerHTML="";d.forEach(x=>{const o=document.createElement("option");o.value=x.deviceId;o.textContent=x.label||"ulaz";sel.appendChild(o);});
+  if(cur)sel.value=cur;}catch(e){}}
+function setSrcTxt(t,live){$("#vuSrcTxt").textContent="izvor: "+t;$("#vuLed").className="led "+(live?"g":"");}
+function followTape(m){       // VU for local files: play the same file muted, locked to the Denon's position
+  const url="/music/"+encP(m.f),el=getEl();
+  if(curUrl!==url){disconnectSrc();curUrl=url;curLabel=(m.artist?m.artist+" — ":"")+m.title;fileMode=true;
+    delayNode.delayTime.value=0;el.preload="auto";el.src=url;elSrc.connect(delayNode);srcNode=elSrc;setSrcTxt(curLabel+" · učitavam…",false);}
+  if(tape.playing){
+    const want=tapePos();if(el.readyState>=1&&Math.abs(el.currentTime-want)>0.8)el.currentTime=want;
+    if(el.paused)el.play().then(()=>{$("#vuOn").hidden=true;}).catch(err=>{if(err&&err.name==="NotAllowedError")askGesture("Klikni da uključiš VU metre");});
+  }else if(!el.paused){el.pause();setSrcTxt(curLabel+" · pauza",false);}
+}
+function autoFollow(){
+  if(!ac)return;
+  const st=ST;
+  const mu=st&&st.power&&st.music&&st.music.active?st.music:null;
+  if(mu){followTape(mu);return;}const url=st&&st.power&&st.station?st.station.url:null;
+  if(url){playUrl(url,st.station.name);return;}
+  if(curUrl&&st&&st.power&&st.isNet)return;           // keep playing, do not cut the stream
+  if(curUrl)disconnectSrc();
+  setSrcTxt(st&&st.isNet?"stanica nije prepoznata":"Denon ne svira radio",false);
+}
+function setVuMode(m){vuMode=m;ensureAudio();ac.resume();
+  const inp=m==="input";$("#devSel").hidden=!inp;$("#devLbl").hidden=!inp;
+  if(m==="auto"){disconnectSrc();autoFollow();}
+  else if(inp){useInput();}
+  else{disconnectSrc();setSrcTxt("isključeno",false);}
+}
+function askGesture(msg){const o=$("#vuOn");o.hidden=false;$("#vuStart").lastChild.textContent=msg;}
+$("#vuStart").onclick=()=>{unlockAudio();$("#vuOn").hidden=true;const u=curUrl;
+  if(u&&audioEl){audioEl.play().catch(()=>askGesture("Browser i dalje blokira — dozvoli zvuk u adresnoj traci"));}
+  else setVuMode($("#vuSrc").value);};
+$("#vuSrc").onchange=e=>{unlockAudio();$("#vuOn").hidden=true;setVuMode(e.target.value);};
+$("#devSel").onchange=()=>{unlockAudio();if(vuMode==="input")useInput();};
+$("#delay").oninput=e=>{$("#delayV").textContent=(+e.target.value).toFixed(1)+"s";if(delayNode&&!fileMode)delayNode.delayTime.setTargetAtTime(+e.target.value,ac.currentTime,0.05);};
+$("#cal").oninput=e=>{$("#calV").textContent=e.target.value+"dBFS";};
+
+/* ---------- meter skins ---------- */
+const FULL=Math.pow(10,3/20);                 // +3 VU = full scale
+const posOf=vu=>Math.pow(10,vu/20)/FULL;       // needle position 0..1 (voltage-linear, like a real VU)
+const A0=-45*Math.PI/180,A1=45*Math.PI/180;
+const SKINS={
+  klasik:{name:"Klasični (jantar)",paper:[[0,"#fff4d2"],[.45,"#f9dd9a"],[.85,"#e2a94e"],[1,"#a8732c"]],
+    ink:"#1b1610",red:"#c4161c",needle:"#111",shadow:"rgba(40,20,0,.28)",glow:null},
+  plavi:{name:"Plavi noćni",paper:[[0,"#1d3a58"],[.5,"#10243b"],[1,"#050c16"]],
+    ink:"#d4ecff",red:"#ff5e52",needle:"#f4f8ff",shadow:"rgba(0,0,0,.55)",glow:"rgba(120,200,255,.75)"},
+  beli:{name:"Beli studio",paper:[[0,"#ffffff"],[.6,"#f0f0ea"],[1,"#c8c8c0"]],
+    ink:"#121212",red:"#d0021b",needle:"#000",shadow:"rgba(0,0,0,.22)",glow:null},
+  zeleni:{name:"Zeleni fosfor",paper:[[0,"#11301d"],[.6,"#081a10"],[1,"#020805"]],
+    ink:"#86ffb8",red:"#ffd24a",needle:"#d2ffe2",shadow:"rgba(0,0,0,.55)",glow:"rgba(80,255,150,.7)"},
+  crveni:{name:"Retro crveni",paper:[[0,"#3a0d0d"],[.6,"#220707"],[1,"#0c0202"]],
+    ink:"#ffd9c2",red:"#ffbf3a",needle:"#fff1e6",shadow:"rgba(0,0,0,.55)",glow:"rgba(255,120,80,.7)"},
+  led:{name:"LED lestvica",led:true},
+  vfd:{name:"VFD stubić",led:true,vfd:true}
+};
+const EQS={seg:"VFD segmenti",bars:"Glatki stubovi",mirror:"Ogledalo",curve:"Talas",osc:"Osciloskop",dots:"Tačkice"};
+function load(k,d,ok){try{const v=localStorage.getItem(k);return v&&ok[v]?v:d;}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+let skin=load("ds.vuSkin","klasik",SKINS),eqStyle=load("ds.eqStyle","seg",EQS);
+
+class Meter{
+  constructor(cv,ch){this.cv=cv;this.ch=ch;this.pos=0;this.vel=0;this.tgt=0;this.fast=0;this.hold=-60;this.holdT=0;this.layers=null;this.skin=null;this.resize();
+    new ResizeObserver(()=>this.resize()).observe(cv);}
+  resize(){const r=this.cv.getBoundingClientRect();const dpr=Math.min(2,window.devicePixelRatio||1);
+    const w=Math.max(300,Math.round(Math.min(r.width,(r.height||r.width)*1.6)*dpr));const h=Math.round(w*0.625);
+    if(this.cv.width!==w){this.cv.width=w;this.cv.height=h;this.layers=null;}}
+  geo(){const W=this.cv.width,H=this.cv.height;return{W,H,cx:W/2,cy:H*1.04,R:H*0.78};}
+  face(lit,S){
+    const {W,H,cx,cy,R}=this.geo();const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
+    const ins=bezel(g,W,H);
+    const rg=g.createRadialGradient(cx,H*0.62,W*0.05,cx,H*0.55,W*0.7);S.paper.forEach(([o,col])=>rg.addColorStop(o,col));
+    g.fillStyle=rg;roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.fill();
+    const ink=S.ink,red=S.red;
+    if(S.glow){g.shadowColor=S.glow;g.shadowBlur=W*0.012;}
+    g.lineCap="butt";
+    const ang=p=>A0+(A1-A0)*p;
+    const pt=(p,r)=>{const a=ang(p);return[cx+Math.sin(a)*r,cy-Math.cos(a)*r];};
+    g.strokeStyle=ink;g.lineWidth=W*0.004;g.beginPath();
+    g.arc(cx,cy,R*0.9,-Math.PI/2+ang(0),-Math.PI/2+ang(posOf(0)));g.stroke();
+    g.lineWidth=W*0.0015;g.beginPath();g.arc(cx,cy,R*0.94,-Math.PI/2+ang(0),-Math.PI/2+ang(1));g.stroke();
+    g.strokeStyle=red;g.lineWidth=W*0.016;g.beginPath();
+    g.arc(cx,cy,R*0.915,-Math.PI/2+ang(posOf(0)),-Math.PI/2+ang(1));g.stroke();
+    const majors=[-20,-10,-7,-5,-3,-2,-1,0,1,2,3];
+    const minors=[-15,-8,-6,-4,-2.5,-1.5,-0.5,0.5,1.5,2.5];
+    g.font=`600 ${Math.round(W*0.042)}px "Barlow Condensed","Arial Narrow",sans-serif`;g.textAlign="center";g.textBaseline="middle";
+    majors.forEach(v=>{const p=posOf(v);const[x1,y1]=pt(p,R*0.88);const[x2,y2]=pt(p,R*1.0);
+      g.strokeStyle=v>=0?red:ink;g.lineWidth=W*0.005;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+      const[tx,ty]=pt(p,R*1.09);g.fillStyle=v>0?red:ink;g.save();g.translate(tx,ty);g.rotate(ang(p)*0.85);
+      g.fillText(v>0?"+"+v:String(Math.abs(v)),0,0);g.restore();});
+    minors.forEach(v=>{const p=posOf(v);const[x1,y1]=pt(p,R*0.9);const[x2,y2]=pt(p,R*0.965);
+      g.strokeStyle=v>=0?red:ink;g.lineWidth=W*0.0025;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();});
+    g.font=`500 ${Math.round(W*0.026)}px "Barlow Condensed","Arial Narrow",sans-serif`;g.fillStyle=ink;
+    [0,20,40,60,80,100].forEach(pc=>{const p=pc/100/FULL;const[x1,y1]=pt(p,R*0.82);const[x2,y2]=pt(p,R*0.86);
+      g.strokeStyle=ink;g.lineWidth=W*0.002;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+      const[tx,ty]=pt(p,R*0.775);g.fillText(String(pc),tx,ty);});
+    g.font=`700 ${Math.round(W*0.05)}px "Barlow Condensed",sans-serif`;
+    let[sx,sy]=pt(-0.02,R*1.09);g.fillStyle=ink;g.fillText("−",sx-W*0.04,sy+H*0.02);
+    [sx,sy]=pt(1.02,R*1.09);g.fillStyle=red;g.fillText("+",sx+W*0.04,sy+H*0.02);
+    g.fillStyle=ink;g.font=`700 ${Math.round(W*0.09)}px "Barlow Condensed",sans-serif`;g.fillText("VU",cx,H*0.56);
+    g.font=`600 ${Math.round(W*0.03)}px "Barlow Condensed",sans-serif`;g.fillText(this.ch==="L"?"LEFT":"RIGHT",cx,H*0.66);
+    g.font=`500 ${Math.round(W*0.022)}px "Barlow Condensed",sans-serif`;g.globalAlpha=0.7;g.fillText("DENON STUDIO · 0 VU = +4 dBu",cx,H*0.72);g.globalAlpha=1;
+    g.shadowBlur=0;
+    const hg=g.createLinearGradient(0,H*0.78,0,H);hg.addColorStop(0,"#2a2b2f");hg.addColorStop(1,"#0c0c0e");
+    g.fillStyle=hg;g.beginPath();g.moveTo(ins,H-ins);g.lineTo(ins,H*0.9);
+    g.quadraticCurveTo(cx,H*0.74,W-ins,H*0.9);g.lineTo(W-ins,H-ins);g.closePath();g.fill();
+    g.strokeStyle="rgba(255,255,255,.08)";g.lineWidth=1;g.beginPath();g.moveTo(ins,H*0.9);g.quadraticCurveTo(cx,H*0.74,W-ins,H*0.9);g.stroke();
+    const vg=g.createRadialGradient(cx,H*0.5,W*0.3,cx,H*0.5,W*0.75);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.45)");
+    g.fillStyle=vg;g.fillRect(0,0,W,H);
+    if(!lit){g.fillStyle="rgba(0,0,0,.62)";g.fillRect(ins,ins,W-2*ins,H-2*ins);}
+    innerShadow(g,ins,ins,W-2*ins,H-2*ins,W*0.012,W*0.03,H*0.02,"rgba(0,0,0,.85)");
+    return c;
+  }
+  base(g,power){g.globalAlpha=1;g.drawImage(this.layers[1],0,0);g.globalAlpha=power;g.drawImage(this.layers[0],0,0);g.globalAlpha=1;}
+  draw(power){
+    const S=SKINS[skin];
+    if(S.led)return this.drawLed(power,S);
+    const key=skin+'|'+themeName();if(!this.layers||this.skin!==key){this.skin=key;this.layers=[this.face(1,S),this.face(0,S)];}
+    const g=this.cv.getContext("2d");const {W,H,cx,cy,R}=this.geo();
+    g.clearRect(0,0,W,H);this.base(g,power);
+    const a=A0+(A1-A0)*Math.max(-0.03,Math.min(1.06,this.pos));
+    const tip=[cx+Math.sin(a)*R*1.02,cy-Math.cos(a)*R*1.02];
+    const base=[cx+Math.sin(a)*R*0.3,cy-Math.cos(a)*R*0.3];
+    g.save();g.strokeStyle=S.shadow;g.lineWidth=W*0.006;g.filter="blur(2px)";
+    g.beginPath();g.moveTo(base[0]+W*0.012,base[1]+H*0.02);g.lineTo(tip[0]+W*0.012,tip[1]+H*0.02);g.stroke();g.restore();
+    g.save();if(S.glow){g.shadowColor=S.glow;g.shadowBlur=W*0.01*power;}
+    g.strokeStyle=S.needle;g.lineWidth=W*0.0042;g.lineCap="round";
+    g.beginPath();g.moveTo(base[0],base[1]);g.lineTo(tip[0],tip[1]);g.stroke();g.restore();
+    g.save();g.beginPath();g.moveTo(0,H);g.lineTo(0,H*0.9);g.quadraticCurveTo(cx,H*0.74,W,H*0.9);g.lineTo(W,H);g.closePath();g.clip();
+    this.base(g,power);g.restore();
+    glass(g,W,H,W*0.025,1);
+  }
+  drawLed(power,S){
+    const g=this.cv.getContext("2d");const W=this.cv.width,H=this.cv.height;
+    g.clearRect(0,0,W,H);
+    const ins=bezel(g,W,H);
+    const bg=g.createLinearGradient(0,0,0,H);
+    if(S.vfd){bg.addColorStop(0,"#071311");bg.addColorStop(1,"#030807");}else{bg.addColorStop(0,"#141518");bg.addColorStop(1,"#0a0a0c");}
+    g.fillStyle=bg;roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.fill();
+    const lvl=this.fast<=0.0005?-60:20*Math.log10(this.fast*FULL);
+    const now=performance.now();
+    if(lvl>=this.hold){this.hold=lvl;this.holdT=now;}else if(now-this.holdT>1200)this.hold=Math.max(-60,this.hold-0.5);
+    const N=S.vfd?48:36,x0=W*0.13,x1=W*0.93,y0=H*0.34,sh=H*0.27,step=(x1-x0)/N,lo=-30,hi=3;
+    const dbAt=i=>lo+(hi-lo)*(i+1)/N, xOf=db=>x0+(db-lo)/(hi-lo)*(x1-x0);
+    const holdI=Math.floor((this.hold-lo)/(hi-lo)*N-1e-9);
+    const txt=S.vfd?"#6ff3d6":"#c9ccd2";
+    g.font=`600 ${Math.round(W*0.11)}px "Barlow Condensed",sans-serif`;g.textAlign="center";g.textBaseline="middle";
+    g.fillStyle=txt;g.globalAlpha=0.35+0.65*power;g.fillText(this.ch,W*0.075,y0+sh/2);g.globalAlpha=1;
+    for(let i=0;i<N;i++){const db=dbAt(i);const on=lvl>=db-(hi-lo)/N*0.5||i===holdI&&this.hold>lo;
+      let col;if(S.vfd)col=db>0?"#ffb85a":"#6ff3d6";else col=db>0?"#ff3b30":db>-5?"#ffb020":"#3dff7a";
+      const x=x0+i*step;
+      if(on&&power>0.3){g.fillStyle=col;g.shadowColor=col;g.shadowBlur=W*0.012;g.globalAlpha=power;}
+      else{g.fillStyle=S.vfd?"#0f2622":(db>0?"#3a1513":db>-5?"#3a2a0e":"#0f2a17");g.shadowBlur=0;g.globalAlpha=1;}
+      if(S.vfd){const r=step*0.3;g.beginPath();g.arc(x+step/2,y0+sh*0.25,r,0,7);g.arc(x+step/2,y0+sh*0.75,r,0,7);g.fill();}
+      else g.fillRect(x+step*0.12,y0,step*0.76,sh);}
+    g.shadowBlur=0;g.globalAlpha=1;
+    g.strokeStyle=S.vfd?"rgba(111,243,214,.45)":"rgba(201,204,210,.4)";g.lineWidth=Math.max(1,W*0.002);
+    g.fillStyle=S.vfd?"#6ff3d6":"#9aa0a8";g.font=`500 ${Math.round(W*0.034)}px "Barlow Condensed",sans-serif`;
+    [-30,-20,-10,-7,-5,-3,0,3].forEach(db=>{const x=xOf(db);g.beginPath();g.moveTo(x,y0+sh+H*0.03);g.lineTo(x,y0+sh+H*0.06);g.stroke();
+      if(db>0)g.fillStyle=S.vfd?"#ffb85a":"#ff6a5e";g.fillText(db>0?"+"+db:String(db),x,y0+sh+H*0.11);});
+    const f2=S.vfd?'"VT323",monospace':'"Barlow Condensed",sans-serif';
+    g.textAlign="left";g.fillStyle=txt;g.globalAlpha=0.55;g.font=`600 ${Math.round(W*0.03)}px "Barlow Condensed",sans-serif`;
+    g.fillText(S.vfd?"VFD LEVEL METER":"LED PEAK METER",x0,H*0.17);
+    g.textAlign="right";g.globalAlpha=power;g.font=`500 ${Math.round(W*0.075)}px ${f2}`;
+    g.fillStyle=lvl>0?(S.vfd?"#ffb85a":"#ff3b30"):txt;g.fillText(lvl<=-40?"-∞":(lvl>0?"+":"")+lvl.toFixed(1),x1,H*0.18);
+    g.globalAlpha=0.5;g.font=`600 ${Math.round(W*0.026)}px "Barlow Condensed",sans-serif`;g.fillText("VU",x1,H*0.85);
+    g.textAlign="left";g.fillText("PEAK HOLD  "+(this.hold<=-30?"—":(this.hold>0?"+":"")+this.hold.toFixed(1)),x0,H*0.85);g.globalAlpha=1;
+    innerShadow(g,ins,ins,W-2*ins,H-2*ins,W*0.012,W*0.03,H*0.02,"rgba(0,0,0,.9)");
+    glass(g,W,H,ins,0.6);
+  }
+  step(target,dt){ // VU ballistics: ~300 ms rise, ~1.5 % overshoot
+    this.tgt=target;
+    this.fast=target>this.fast?this.fast+(target-this.fast)*Math.min(1,dt*25):this.fast+(target-this.fast)*Math.min(1,dt*4);
+    const w=2*Math.PI*2.1,z=0.82;const acc=w*w*(target-this.pos)-2*z*w*this.vel;
+    this.vel+=acc*dt;this.pos+=this.vel*dt;
+    if(this.pos<-0.03){this.pos=-0.03;this.vel=0;}if(this.pos>1.06){this.pos=1.06;this.vel=0;}
+  }
+}
+const themeName=()=>document.documentElement.dataset.theme||"crna";
+function rrPath(g,x,y,w,h,r){g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+function bezel(g,W,H){ // 3D metal frame around the meter window
+  const ins=W*0.025,chrome=themeName()==="hrom",bz=g.createLinearGradient(0,0,0,H);
+  if(chrome){bz.addColorStop(0,"#ffffff");bz.addColorStop(.18,"#d9dce0");bz.addColorStop(.55,"#9a9ea5");bz.addColorStop(1,"#55595f");}
+  else{bz.addColorStop(0,"#45484e");bz.addColorStop(.2,"#24262a");bz.addColorStop(.6,"#121315");bz.addColorStop(1,"#030304");}
+  g.fillStyle=bz;roundRect(g,0,0,W,H,W*0.022);g.fill();
+  g.strokeStyle=chrome?"rgba(255,255,255,.9)":"rgba(255,255,255,.16)";g.lineWidth=Math.max(1,W*0.002);
+  g.beginPath();g.moveTo(W*0.02,1.5);g.lineTo(W*0.98,1.5);g.stroke();
+  const ig=g.createLinearGradient(0,ins*0.4,0,H-ins*0.4);ig.addColorStop(0,"#000");ig.addColorStop(1,chrome?"#6b6f75":"#2a2c30");
+  g.fillStyle=ig;roundRect(g,ins*0.45,ins*0.45,W-ins*0.9,H-ins*0.9,W*0.017);g.fill();
+  return ins;}
+function innerShadow(g,x,y,w,h,r,blur,oy,col){
+  g.save();roundRect(g,x,y,w,h,r);g.clip();
+  g.beginPath();g.rect(x-w,y-h,w*3,h*3);rrPath(g,x,y,w,h,r);
+  g.shadowColor=col;g.shadowBlur=blur;g.shadowOffsetY=oy;g.fillStyle="#000";g.fill("evenodd");g.restore();}
+function glass(g,W,H,ins,strength){
+  g.save();roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.clip();
+  const gl=g.createLinearGradient(0,ins,0,H*0.5);gl.addColorStop(0,"rgba(255,255,255,"+(0.24*strength)+")");gl.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=gl;g.beginPath();g.moveTo(ins,ins);g.lineTo(W-ins,ins);g.lineTo(W-ins,H*0.16);g.quadraticCurveTo(W*0.55,H*0.44,ins,H*0.34);g.closePath();g.fill();
+  const sg2=g.createLinearGradient(W*0.62,0,W*0.8,H);sg2.addColorStop(0,"rgba(255,255,255,0)");sg2.addColorStop(.5,"rgba(255,255,255,"+(0.07*strength)+")");sg2.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=sg2;g.beginPath();g.moveTo(W*0.7,ins);g.lineTo(W*0.78,ins);g.lineTo(W*0.6,H-ins);g.lineTo(W*0.52,H-ins);g.closePath();g.fill();
+  g.restore();
+  g.strokeStyle="rgba(255,255,255,.14)";g.lineWidth=Math.max(1,W*0.0025);roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.stroke();}
+function roundRect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+
+const mL=new Meter($("#vuL"),"L"),mR=new Meter($("#vuR"),"R");
+const spec=$("#spec"),sg=spec.getContext("2d");const NB=32;const bands=new Float32Array(NB),caps=new Float32Array(NB);
+new ResizeObserver(()=>{const dpr=Math.min(2,window.devicePixelRatio||1);const w=Math.round(spec.clientWidth*dpr),h=Math.round(spec.clientHeight*dpr);
+  if(w&&h&&(spec.width!==w||spec.height!==h)){spec.width=w;spec.height=h;}}).observe(spec);
+
+/* ---------- theme ---------- */
+function applyTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("ds.theme",t);}catch(e){}
+  $("#themeTxt").textContent="Tema: "+(t==="hrom"?"hrom":"crna");$("#themeBtn").classList.toggle("on",t==="hrom");}
+applyTheme(themeName());
+$("#themeBtn").onclick=()=>{const t=themeName()==="hrom"?"crna":"hrom";applyTheme(t);say("Tema: "+(t==="hrom"?"hrom":"crna"));};
+
+/* ---------- style pickers ---------- */
+(function(){
+  const vs=$("#vuSkin"),es=$("#eqStyle");
+  Object.entries(SKINS).forEach(([k,v])=>{const o=document.createElement("option");o.value=k;o.textContent=v.name;vs.appendChild(o);});
+  Object.entries(EQS).forEach(([k,v])=>{const o=document.createElement("option");o.value=k;o.textContent=v;es.appendChild(o);});
+  vs.value=skin;es.value=eqStyle;
+  const setSkin=k=>{skin=k;vs.value=k;save("ds.vuSkin",k);say("VU: "+SKINS[k].name);};
+  const setEq=k=>{eqStyle=k;es.value=k;save("ds.eqStyle",k);say("Ekvilajzer: "+EQS[k]);};
+  vs.onchange=()=>setSkin(vs.value);es.onchange=()=>setEq(es.value);
+  const next=(obj,cur)=>{const k=Object.keys(obj);return k[(k.indexOf(cur)+1)%k.length];};
+  $$(".meter canvas").forEach(c=>{c.title="Klikni za sledeći izgled VU metra";c.onclick=()=>setSkin(next(SKINS,skin));});
+  spec.title="Klikni za sledeći izgled ekvilajzera";spec.onclick=()=>setEq(next(EQS,eqStyle));
+})();
+
+function rmsPeak(buf){let s=0,p=0;for(let i=0;i<buf.length;i++){const v=buf[i];s+=v*v;const a=v<0?-v:v;if(a>p)p=a;}return[Math.sqrt(s/buf.length),p];}
+let lastT=performance.now(),pkL=0,pkR=0,powerSm=1;
+// one broken piece (e.g. the cassette) must never stop the VU meters: catch, report once, keep going
+const jsSeen=new Set();
+function jsErr(e,where){const m=(where||"")+" "+(e&&(e.stack||e.message)||e);if(jsSeen.has(m)||jsSeen.size>20)return;jsSeen.add(m);
+  try{console.error(m);fetch("/api/jslog?m="+encodeURIComponent(m.slice(0,1500)));}catch(_){}}
+addEventListener("error",e=>jsErr(e.error||e.message,"window"));
+addEventListener("unhandledrejection",e=>jsErr(e.reason,"promise"));
+function frame(t){
+  try{frameBody(t);}catch(e){jsErr(e,"frame");}
+  requestAnimationFrame(frame);
+}
+function frameBody(t){
+  const dt=Math.min(0.05,(t-lastT)/1000);lastT=t;
+  powerSm+=(meterPower-powerSm)*Math.min(1,dt*3);
+  let tL=0,tR=0,live=ac&&(srcNode!=null);
+  if(live){
+    anL.getFloatTimeDomainData(bufL);anR.getFloatTimeDomainData(bufR);
+    let[rL,pL]=rmsPeak(bufL),[rR,pR]=rmsPeak(bufR);
+    if(rR<1e-6&&rL>1e-6){rR=rL;pR=pL;}                     // mono stream
+    const ref=+$("#cal").value;
+    const vu=r=>r<1e-7?-60:20*Math.log10(r)-ref;
+    tL=posOf(vu(rL));tR=posOf(vu(rR));
+    if(pL>0.89||vu(rL)>3)pkL=t;if(pR>0.89||vu(rR)>3)pkR=t;
+  }
+  mL.step(tL,dt);mR.step(tR,dt);mL.draw(powerSm);mR.draw(powerSm);
+  $("#pkL").className="led "+(t-pkL<450?"r":"");$("#pkR").className="led "+(t-pkR<450?"r":"");
+  drawSpec(live,dt);
+  try{drawDeck(dt);}catch(e){jsErr(e,"deck");}
+}
+
+/* ---------- spectrum / equalizer styles ---------- */
+function drawSpec(live,dt){
+  const W=spec.width,H=spec.height;sg.clearRect(0,0,W,H);
+  if(live){anM.getByteFrequencyData(freq);const ny=ac.sampleRate/2,n=freq.length;
+    for(let b=0;b<NB;b++){const f0=40*Math.pow(16000/40,b/NB),f1=40*Math.pow(16000/40,(b+1)/NB);
+      let i0=Math.floor(f0/ny*n),i1=Math.max(i0+1,Math.floor(f1/ny*n));let m=0;for(let i=i0;i<i1&&i<n;i++)m=Math.max(m,freq[i]);
+      const v=m/255;bands[b]=v>bands[b]?v:bands[b]-dt*1.6;caps[b]=Math.max(bands[b],caps[b]-dt*0.5);}}
+  else for(let b=0;b<NB;b++){bands[b]=Math.max(0,bands[b]-dt*1.6);caps[b]=Math.max(0,caps[b]-dt*0.5);}
+  const gw=W/NB;
+  sg.save();
+  if(eqStyle==="seg"){
+    const segs=14,sh=H/segs;
+    for(let b=0;b<NB;b++){const lit=Math.round(bands[b]*segs),cap=Math.min(segs-1,Math.round(caps[b]*segs));
+      for(let s=0;s<segs;s++){const on=s<lit;const y=H-(s+1)*sh;
+        sg.fillStyle=on?(s>=segs-2?"#ffb85a":"#6ff3d6"):"#0f2622";
+        if(on){sg.shadowColor=s>=segs-2?"rgba(255,184,90,.8)":"rgba(111,243,214,.8)";sg.shadowBlur=8;}else sg.shadowBlur=0;
+        sg.fillRect(b*gw+gw*0.14,y+sh*0.18,gw*0.72,sh*0.64);}
+      if(cap>0){sg.shadowBlur=6;sg.shadowColor="rgba(111,243,214,.8)";sg.fillStyle="#bfffee";sg.fillRect(b*gw+gw*0.14,H-(cap+1)*sh+sh*0.18,gw*0.72,sh*0.3);}}
+  }else if(eqStyle==="bars"){
+    const gr=sg.createLinearGradient(0,H,0,0);gr.addColorStop(0,"#0b4f7a");gr.addColorStop(0.55,"#2fd3e0");gr.addColorStop(0.85,"#b8fff2");gr.addColorStop(1,"#ffffff");
+    sg.fillStyle=gr;sg.shadowColor="rgba(47,211,224,.6)";sg.shadowBlur=10;
+    for(let b=0;b<NB;b++){const h=bands[b]*H*0.94;roundRect(sg,b*gw+gw*0.12,H-h,gw*0.76,h,Math.min(gw*0.2,h/2));sg.fill();
+      const c=caps[b]*H*0.94;if(c>2){sg.fillStyle="#fff";sg.fillRect(b*gw+gw*0.12,H-c-H*0.03,gw*0.76,H*0.025);sg.fillStyle=gr;}}
+  }else if(eqStyle==="mirror"){
+    const cy=H/2,gr=sg.createLinearGradient(0,0,0,H);
+    gr.addColorStop(0,"#ff5fa2");gr.addColorStop(0.3,"#ffb85a");gr.addColorStop(0.5,"#fff2c4");gr.addColorStop(0.7,"#ffb85a");gr.addColorStop(1,"#ff5fa2");
+    sg.fillStyle=gr;sg.shadowColor="rgba(255,150,90,.6)";sg.shadowBlur=10;
+    for(let b=0;b<NB;b++){const h=Math.max(H*0.015,bands[b]*H*0.47);sg.fillRect(b*gw+gw*0.16,cy-h,gw*0.68,h*2);}
+    sg.shadowBlur=0;sg.fillStyle="rgba(255,255,255,.25)";sg.fillRect(0,cy-0.5,W,1);
+  }else if(eqStyle==="curve"){
+    const pts=[];for(let b=0;b<NB;b++)pts.push([b*gw+gw/2,H-bands[b]*H*0.9-2]);
+    const path=()=>{sg.beginPath();sg.moveTo(0,pts[0][1]);for(let i=0;i<pts.length-1;i++){const mx=(pts[i][0]+pts[i+1][0])/2,my=(pts[i][1]+pts[i+1][1])/2;sg.quadraticCurveTo(pts[i][0],pts[i][1],mx,my);}sg.lineTo(W,pts[pts.length-1][1]);};
+    path();sg.lineTo(W,H);sg.lineTo(0,H);sg.closePath();
+    const gr=sg.createLinearGradient(0,0,0,H);gr.addColorStop(0,"rgba(111,243,214,.55)");gr.addColorStop(1,"rgba(111,243,214,0)");sg.fillStyle=gr;sg.fill();
+    path();sg.strokeStyle="#9ffbe6";sg.lineWidth=Math.max(2,H*0.025);sg.shadowColor="rgba(111,243,214,.9)";sg.shadowBlur=12;sg.stroke();
+  }else if(eqStyle==="osc"){
+    sg.strokeStyle="rgba(111,243,214,.12)";sg.lineWidth=1;
+    for(let i=1;i<8;i++){sg.beginPath();sg.moveTo(W*i/8,0);sg.lineTo(W*i/8,H);sg.stroke();}
+    for(let i=1;i<4;i++){sg.beginPath();sg.moveTo(0,H*i/4);sg.lineTo(W,H*i/4);sg.stroke();}
+    sg.beginPath();const n=1024;let st=0;
+    if(live){for(let i=1;i<bufL.length-n;i++){if(bufL[i-1]<0&&bufL[i]>=0){st=i;break;}}}
+    const gain=Math.pow(10,(-(+$("#cal").value)-10)/20)*2.2;
+    for(let i=0;i<n;i++){const v=live?bufL[st+i]*gain:0;const x=i/(n-1)*W,y=H/2-Math.max(-1,Math.min(1,v))*H*0.46;i?sg.lineTo(x,y):sg.moveTo(x,y);}
+    sg.strokeStyle="#7dffb0";sg.lineWidth=Math.max(1.5,H*0.018);sg.shadowColor="rgba(80,255,150,.9)";sg.shadowBlur=10;sg.stroke();
+  }else if(eqStyle==="dots"){
+    const rows=10,rh=H/rows,r=Math.min(gw,rh)*0.3;
+    for(let b=0;b<NB;b++){const lit=Math.round(bands[b]*rows),hue=200-b/NB*200;
+      for(let s=0;s<rows;s++){const on=s<lit;sg.beginPath();sg.arc(b*gw+gw/2,H-(s+0.5)*rh,r,0,7);
+        if(on){sg.fillStyle=`hsl(${hue} 90% ${55+s*3}%)`;sg.shadowColor=sg.fillStyle;sg.shadowBlur=8;}else{sg.fillStyle="rgba(255,255,255,.05)";sg.shadowBlur=0;}
+        sg.fill();}}
+  }
+  sg.restore();
+}
+/* ================= MUSIC: local files on the Denon + cassette deck ================= */
+const encP=p=>p.split("/").map(encodeURIComponent).join("/");
+const fmtT=s=>{s=Math.max(0,Math.floor(s||0));const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=s%60;
+  return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0");};
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let MUS=null,musData=null,musBusy=false,seekDrag=false,musDir="";
+try{musDir=localStorage.getItem("ds.musDir")||"";}catch(e){}
+const tape={pos:0,at:0,dur:0,playing:false,f:null,v:0,aL:0,aR:1.1,tx:0,spin:0,spinT:0};
+const cas={y:1,tgt:1,lab:null,pend:null,wait:0};
+let deckUntil=0;
+function tapePos(){const p=tape.pos+(tape.playing?(performance.now()-tape.at)/1000:0);return tape.dur?Math.min(tape.dur,p):p;}
+const labelOf=m=>({artist:m.artist||"",title:m.title||"",album:m.album||"",dur:m.dur||0});
+
+function setDeck(on){
+  const w=$("#nowWrap");if(w.classList.contains("tape")===on)return;
+  w.classList.toggle("tape",on);$("#deck").setAttribute("aria-hidden",String(!on));
+  if(on){cas.y=reduceMotion?0:1;cas.tgt=0;cas.wait=reduceMotion?0:0.6;}
+  else{tape.f=null;cas.pend=null;}
+  deckUntil=performance.now()+1400;
+}
+function renderTape(st){
+  const m=st&&st.power!==false&&st.music&&st.music.active?st.music:null;MUS=m;
+  setDeck(!!m);
+  if(!m){musMark(null);return;}
+  const now=performance.now(),pred=tapePos(),playing=m.state==="PLAYING";
+  if(m.f!==tape.f){                                   // new song -> swap the cassette
+    const first=tape.f===null;tape.f=m.f;tape.pos=m.pos;tape.at=now;
+    if(first||!cas.lab||reduceMotion){cas.lab=labelOf(m);cas.pend=null;}else{cas.pend=labelOf(m);cas.tgt=1;}
+    musMark(m.f);
+    $("#deckCv").setAttribute("aria-label","Kaseta: "+(m.artist?m.artist+" — ":"")+m.title);
+  }else if(Math.abs(pred-m.pos)>1.5||playing!==tape.playing){tape.pos=m.pos;tape.at=now;}
+  else{tape.pos=pred+(m.pos-pred)*0.15;tape.at=now;}
+  tape.playing=playing;tape.dur=m.dur||0;
+  if(cas.lab&&!cas.pend&&m.f===tape.f)cas.lab.dur=tape.dur;
+  const pb=$("#mPlay");pb.textContent=playing?"❚❚":"▶";pb.title=playing?"Pauza":"Pusti";pb.setAttribute("aria-label",pb.title);
+  $("#mShuf").classList.toggle("on",!!m.shuffle);
+  $("#mIdx").textContent=(m.idx+1)+" / "+m.n+(m.shuffle?" · 🔀":"");
+  $("#mNext").disabled=m.idx+1>=m.n;
+  $("#mSeek").max=Math.max(1,Math.round(m.dur||0));
+  tapeUi();
+}
+let tapeTxt="";
+function tapeUi(){
+  if(!MUS)return;const p=seekDrag?+$("#mSeek").value:tapePos();
+  if(!seekDrag)$("#mSeek").value=Math.round(p);
+  const t=fmtT(p)+" / "+(tape.dur?fmtT(tape.dur):"--:--");if(t!==tapeTxt){tapeTxt=t;$("#mTime").textContent=t;}
+}
+async function musCtl(a,t){
+  try{const j=await (await fetch("/api/music/ctl?a="+a+(t!=null?"&t="+Math.round(t):""))).json();say(j.msg||a);
+    if(ST&&"music" in j){ST.music=j.music;renderTape(ST);}}
+  catch(_){say("Greška — Denon Studio server ne odgovara");}
+  setTimeout(poll,400);}
+$("#mPlay").onclick=e=>{press(e.currentTarget);unlockAudio();musCtl(tape.playing?"pause":"play");};
+$("#mPrev").onclick=e=>{press(e.currentTarget);tape.spin=-8;tape.spinT=.45;musCtl("prev");};
+$("#mNext").onclick=e=>{press(e.currentTarget);tape.spin=8;tape.spinT=.45;musCtl("next");};
+$("#mEject").onclick=e=>{press(e.currentTarget);musCtl("stop");};
+$("#mShuf").onclick=e=>{press(e.currentTarget);musCtl("shuffle");};
+(function(){const sk=$("#mSeek");
+  sk.oninput=()=>{seekDrag=true;tapeUi();};
+  sk.onchange=()=>{const t=+sk.value,d=t-tapePos();seekDrag=false;
+    tape.spin=Math.sign(d)*9;tape.spinT=Math.min(1.1,.25+Math.abs(d)/90);tape.pos=t;tape.at=performance.now();musCtl("seek",t);};})();
+
+/* ---------- music tab: folders + songs ---------- */
+function musMark(f){$$("#catList .st[data-f]").forEach(e=>e.classList.toggle("on",!!f&&e.dataset.f===f));}
+async function musLoad(d){
+  $("#catInfo").textContent="učitavam…";
+  try{const j=await (await fetch("/api/music/list?d="+encodeURIComponent(d||""))).json();
+    if(radioTab!=="mus")return;
+    musData=j;if(j.ok){musDir=j.rel;try{localStorage.setItem("ds.musDir",j.rel);}catch(e){}}
+    renderMus();$("#catList").scrollTop=0;
+  }catch(_){if(radioTab==="mus")$("#catInfo").textContent="Denon Studio server ne odgovara";}}
+function renderMus(){
+  const box=$("#catList"),info=$("#catInfo"),j=musData;box.innerHTML="";
+  const has=!!(j&&j.ok&&j.tracks.length);$("#musAll").disabled=!has;$("#musShuf").disabled=!has;
+  if(!j||!j.ok){
+    info.textContent="fascikla sa muzikom nije izabrana";$("#tabMusN").textContent="";
+    const e=document.createElement("div");e.className="mus-empty";
+    e.innerHTML='<div>Izaberi fasciklu sa pesmama (MP3, FLAC, WAV, AAC) — na ovom računaru ili na disku.<br>Denon ih pušta preko mreže, a gore se pojavi kaseta.</div>';
+    const b=document.createElement("button");b.className="hb";b.style.cssText="font-size:15px;padding:12px 20px";b.textContent="📁 Izaberi fasciklu";
+    b.onclick=()=>dirOpen();e.appendChild(b);box.appendChild(e);return;}
+  info.innerHTML="";const parts=j.rel?j.rel.split("/"):[];
+  const crumb=(txt,rel)=>{const c=document.createElement("span");c.className="crumb";c.textContent=txt;c.onclick=()=>musLoad(rel);info.appendChild(c);};
+  crumb("📁 "+j.rootName,"");parts.forEach((p,i)=>{info.appendChild(document.createTextNode(" › "));crumb(p,parts.slice(0,i+1).join("/"));});
+  const q=fold($("#catQ").value.trim());
+  const dirs=j.dirs.filter(d=>!q||fold(d.name).includes(q)),trs=j.tracks.filter(t=>!q||fold(t.artist+" "+t.title).includes(q));
+  info.appendChild(document.createTextNode("  ·  "+(q?trs.length+" od "+j.tracks.length:j.tracks.length)+" pesama"));
+  if(!j.rel)$("#tabMusN").textContent=j.tracks.length||"";
+  if(j.rel)box.appendChild(musCard({up:true}));
+  dirs.forEach(d=>box.appendChild(musCard({dir:d})));
+  trs.forEach(t=>box.appendChild(musCard({t,i:j.tracks.indexOf(t)})));
+  if(!dirs.length&&!trs.length){const e=document.createElement("div");e.className="mus-empty";
+    e.textContent=q?"nema pesme sa tim imenom":"ova fascikla je prazna";box.appendChild(e);}
+  musMark(MUS&&MUS.f);
+}
+function musCard(o){
+  const d=document.createElement("div");d.className="st";d.tabIndex=0;d.setAttribute("role","button");
+  d.innerHTML='<div class="lg"></div><div style="min-width:0"><div class="nm"></div><div class="mt"></div></div><div class="act"><span class="pl" aria-hidden="true">▶</span></div>';
+  const lg=d.querySelector(".lg"),nm=d.querySelector(".nm"),mt=d.querySelector(".mt"),pl=d.querySelector(".pl");let go;
+  if(o.up){d.classList.add("dir","up");lg.textContent="↰";nm.textContent="Nazad";mt.textContent="fascikla iznad";pl.textContent="↰";
+    go=()=>musLoad(musDir.split("/").slice(0,-1).join("/"));}
+  else if(o.dir){d.classList.add("dir");lg.classList.add("fold");lg.textContent="📁";nm.textContent=o.dir.name;
+    mt.textContent=[o.dir.n?o.dir.n+" pesama":"",o.dir.nd?o.dir.nd+" fascikli":""].filter(Boolean).join(" · ")||"prazno";
+    pl.textContent="›";go=()=>musLoad(o.dir.rel);}
+  else{const t=o.t;d.dataset.f=t.f;lg.classList.add("num");lg.innerHTML='<span></span><img alt="" loading="lazy" decoding="async">';
+    lg.firstChild.textContent=String(o.i+1);const im=lg.lastChild;
+    im.onload=()=>lg.classList.add("art");im.onerror=()=>im.remove();im.src="/cover?f="+encodeURIComponent(t.f);
+    nm.textContent=t.title;
+    mt.textContent=[t.artist,t.ext!=="MP3"?t.ext:""].filter(Boolean).join(" · ")||t.ext;
+    d.title="Pusti „"+(t.artist?t.artist+" — ":"")+t.title+"“ na Denonu (ostale pesme iz fascikle idu posle nje)";
+    go=()=>musPlay(t.f,false,d);}
+  d.dataset.meta=mt.textContent;
+  d.onclick=go;d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};
+  return d;}
+async function musPlay(f,sh,el){
+  if(musBusy)return;musBusy=true;unlockAudio();$("#vuOn").hidden=true;
+  if(el){el.classList.add("busy");el.querySelector(".mt").textContent="ubacujem kasetu…";}
+  say("Šaljem na Denon…");
+  try{const j=await (await fetch("/api/music/play?"+new URLSearchParams({d:musDir,f:f||"",sh:sh?1:0}))).json();say(j.msg||"?");
+    if(j.ok){if(vuMode!=="auto"){$("#vuSrc").value="auto";setVuMode("auto");}if(ST&&j.music){ST.music=j.music;renderTape(ST);}}}
+  catch(_){say("Greška — Denon Studio server ne odgovara");}
+  musBusy=false;if(el){el.classList.remove("busy");el.querySelector(".mt").textContent=el.dataset.meta;}
+  setTimeout(poll,500);}
+$("#musAll").onclick=e=>{press(e.currentTarget);musPlay("",false);};
+$("#musShuf").onclick=e=>{press(e.currentTarget);musPlay("",true);};
+$("#musDirBtn").onclick=()=>dirOpen();
+fetch("/api/music/list?d=").then(r=>r.json()).then(j=>{if(j.ok)$("#tabMusN").textContent=j.tracks.length||"";}).catch(()=>{});
+
+/* ---------- folder dialog: where the music comes from ---------- */
+const dirDlg=$("#dirDlg");let dirCur="";
+async function dirOpen(p){
+  if(!dirDlg.open)dirDlg.showModal();
+  $("#dirInfo").textContent="učitavam…";
+  try{const j=await (await fetch("/api/fs?p="+encodeURIComponent(p||(musData&&musData.ok?musData.root+(musDir?"/"+musDir:""):"")))).json();
+    dirCur=j.path;
+    $("#dirPath bdi").textContent=j.path;
+    const r=$("#dirRoots");r.innerHTML="";
+    const chip=(txt,path,cls)=>{const b=document.createElement("button");b.className="hb"+(cls?" "+cls:"");b.textContent=txt;b.title=path;
+      b.onclick=()=>dirOpen(path);r.appendChild(b);};
+    j.roots.forEach(x=>chip((x.kind==="home"?"🏠 ":"💽 ")+x.name,x.path));
+    j.recent.forEach(x=>chip("★ "+(x.split("/").pop()||x),x,"rec"));
+    const box=$("#dirList");box.innerHTML="";box.scrollTop=0;
+    j.dirs.forEach(d=>{const c=document.createElement("div");c.className="st dir";c.tabIndex=0;c.setAttribute("role","button");
+      c.innerHTML='<div class="lg fold">📁</div><div style="min-width:0"><div class="nm"></div><div class="mt"></div></div><div class="act"><span class="pl" aria-hidden="true">›</span></div>';
+      c.querySelector(".nm").textContent=d.name;const mt=c.querySelector(".mt");
+      mt.textContent=[d.n?"♪ "+d.n+" pesama":"",d.nd?d.nd+" fascikli":""].filter(Boolean).join(" · ")||"prazno";
+      if(d.n)mt.style.color="var(--vfd)";
+      const go=()=>dirOpen(d.path);c.onclick=go;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};box.appendChild(c);});
+    if(!j.dirs.length){const e=document.createElement("div");e.className="mus-empty";e.textContent="nema podfascikli";box.appendChild(e);}
+    $("#dirUp").disabled=!j.parent;$("#dirUp").onclick=()=>dirOpen(j.parent);
+    $("#dirInfo").textContent=j.n?"♪ "+j.n+" pesama u ovoj fascikli":"ovde nema pesama — uđi u neku fasciklu";
+    $("#dirPick").disabled=!j.n&&!j.dirs.length;
+    $("#dirPick").textContent=j.path===j.root?"✓ Ovo je izabrana fascikla":"✓ Izaberi ovu fasciklu";
+  }catch(_){$("#dirInfo").textContent="Denon Studio server ne odgovara";}}
+$("#dirPick").onclick=async()=>{
+  try{const j=await (await fetch("/api/music/root?p="+encodeURIComponent(dirCur))).json();say(j.msg||"?");
+    if(j.ok){dirDlg.close();musDir="";try{localStorage.setItem("ds.musDir","");}catch(e){}
+      if(radioTab!=="mus")setTab("mus");else musLoad("");}}
+  catch(_){say("Greška");}};
+$("#dirClose").onclick=()=>dirDlg.close();
+dirDlg.addEventListener("click",e=>{if(e.target===dirDlg)dirDlg.close();});
+
+/* ---------- cassette deck drawing (lit like the VU meters) ---------- */
+const deckCv=$("#deckCv"),dg=deckCv.getContext("2d");let deckBg=null;
+new ResizeObserver(()=>{const dpr=Math.min(2,window.devicePixelRatio||1);const w=Math.round(deckCv.clientWidth*dpr),h=Math.round(deckCv.clientHeight*dpr);
+  if(w&&h&&(deckCv.width!==w||deckCv.height!==h)){deckCv.width=w;deckCv.height=h;deckBg=null;}}).observe(deckCv);
+deckCv.title="Klikni za sledeće osvetljenje (isto kao VU metri)";
+deckCv.onclick=()=>{const vs=$("#vuSkin"),k=Object.keys(SKINS);vs.value=k[(k.indexOf(skin)+1)%k.length];vs.onchange();};
+function deckSkin(){const S=SKINS[skin];
+  if(!S.led)return Object.assign({lamp:S.glow||S.paper[0][1]},S);
+  return S.vfd?{paper:[[0,"#14524a"],[.55,"#0a2c26"],[1,"#03100d"]],ink:"#7dffe2",red:"#ffb85a",glow:"rgba(111,243,214,.75)",lamp:"rgba(111,243,214,.9)"}
+              :{paper:[[0,"#3a3d44"],[.6,"#202227"],[1,"#0c0d10"]],ink:"#e6e8ec",red:"#ff3b30",glow:"rgba(255,255,255,.35)",lamp:"#ffb020"};}
+function deckFace(lit,S,W,H){
+  const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
+  const ins=bezel(g,W,H);
+  const bg=g.createLinearGradient(0,ins,0,H-ins);bg.addColorStop(0,"#0d0d0f");bg.addColorStop(1,"#050506");
+  g.fillStyle=bg;roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.fill();
+  if(lit){g.save();roundRect(g,ins,ins,W-2*ins,H-2*ins,W*0.012);g.clip();          // lamp glow behind the cassette
+    const rg=g.createRadialGradient(W/2,H*0.55,H*0.05,W/2,H*0.55,Math.max(W,H)*0.55);
+    rg.addColorStop(0,S.lamp);rg.addColorStop(1,"rgba(0,0,0,0)");g.globalAlpha=0.28;g.fillStyle=rg;g.fillRect(0,0,W,H);g.restore();}
+  innerShadow(g,ins,ins,W-2*ins,H-2*ins,W*0.012,H*0.08,H*0.02,"rgba(0,0,0,.9)");
+  return c;}
+function fitText(g,t,maxW,size,weight,fam){
+  fam=fam||'"Barlow Condensed","Arial Narrow",sans-serif';
+  let s=size;const f=()=>g.font=`${weight} ${Math.round(s)}px ${fam}`;f();
+  while(g.measureText(t).width>maxW&&s>size*0.62){s*=0.94;f();}
+  if(g.measureText(t).width>maxW){while(t.length>1&&g.measureText(t+"…").width>maxW)t=t.slice(0,-1);t=t.trimEnd()+"…";}
+  return t;}
+/* ---- realistic compact cassette: geometry in units of the cassette width (x) / height (y) ---- */
+const CAS={hubX:[0.29,0.71],hubY:0.47,holeR:0.075,hubR:0.058,hubIn:0.03,win:[0.36,0.405,0.28,0.13],RMIN:0.06,RMAX:0.2};
+const HAND='"Caveat","Segoe Print","Comic Sans MS",cursive';
+let casCache=null,NOISE=null;
+if(document.fonts)document.fonts.load('700 40px "Caveat"').then(()=>{casCache=null;}).catch(()=>{});
+function noisePat(g){
+  if(!NOISE){NOISE=document.createElement("canvas");NOISE.width=NOISE.height=160;const n=NOISE.getContext("2d"),id=n.createImageData(160,160);
+    for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255;}n.putImageData(id,0,0);}
+  return g.createPattern(NOISE,"repeat");}
+function casWinPath(g,x,y,w,h){              // two hub holes + centre window (union)
+  g.beginPath();
+  CAS.hubX.forEach(hx=>{const cx=x+w*hx,cy=y+h*CAS.hubY;g.moveTo(cx+w*CAS.holeR,cy);g.arc(cx,cy,w*CAS.holeR,0,Math.PI*2);});
+  const[wx,wy,ww,wh]=CAS.win;rrPath(g,x+w*wx,y+h*wy,w*ww,h*wh,w*0.01);}
+function casScrew(g,sx,sy,r,a){
+  const sg=g.createRadialGradient(sx-r*.35,sy-r*.4,r*.1,sx,sy,r);sg.addColorStop(0,"#f2f3f5");sg.addColorStop(.55,"#9a9ea5");sg.addColorStop(1,"#3a3d42");
+  g.fillStyle="rgba(0,0,0,.55)";g.beginPath();g.arc(sx,sy+r*.15,r*1.15,0,7);g.fill();
+  g.fillStyle=sg;g.beginPath();g.arc(sx,sy,r,0,7);g.fill();
+  g.save();g.translate(sx,sy);g.rotate(a);g.strokeStyle="rgba(20,20,22,.85)";g.lineWidth=r*0.26;g.lineCap="round";
+  g.beginPath();g.moveTo(-r*.55,0);g.lineTo(r*.55,0);g.moveTo(0,-r*.55);g.lineTo(0,r*.55);g.stroke();g.restore();}
+function casBase(w,h,S,lab){                   // everything that does not move: shell, label, print, handwriting
+  const pad=Math.round(w*0.08),c=document.createElement("canvas");c.width=Math.ceil(w+2*pad);c.height=Math.ceil(h+2*pad);
+  const g=c.getContext("2d");g.translate(pad,pad);const u=w,lw=Math.max(1,u*0.0022);
+  // shell with drop shadow
+  g.save();g.shadowColor="rgba(0,0,0,.85)";g.shadowBlur=u*0.05;g.shadowOffsetY=u*0.022;
+  const sh=g.createLinearGradient(0,0,0,h);sh.addColorStop(0,"#45474d");sh.addColorStop(.06,"#2c2e33");sh.addColorStop(.55,"#1d1e22");sh.addColorStop(1,"#111214");
+  g.fillStyle=sh;roundRect(g,0,0,w,h,u*0.034);g.fill();g.restore();
+  g.save();roundRect(g,0,0,w,h,u*0.034);g.clip();
+  g.globalAlpha=0.08;g.fillStyle=noisePat(g);g.fillRect(0,0,w,h);g.globalAlpha=1;           // matte plastic grain
+  const gl=g.createLinearGradient(0,0,0,h*0.3);gl.addColorStop(0,"rgba(255,255,255,.16)");gl.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=gl;g.fillRect(0,0,w,h*0.3);
+  const sd=g.createLinearGradient(0,0,w,0);sd.addColorStop(0,"rgba(255,255,255,.06)");sd.addColorStop(.12,"rgba(255,255,255,0)");sd.addColorStop(.88,"rgba(0,0,0,0)");sd.addColorStop(1,"rgba(0,0,0,.25)");
+  g.fillStyle=sd;g.fillRect(0,0,w,h);g.restore();
+  g.lineWidth=lw;g.strokeStyle="rgba(255,255,255,.25)";roundRect(g,lw,lw,w-2*lw,h-2*lw,u*0.032);g.stroke();     // bevel
+  g.strokeStyle="rgba(0,0,0,.55)";roundRect(g,u*0.013,u*0.013,w-u*0.026,h-u*0.026,u*0.024);g.stroke();
+  g.strokeStyle="rgba(255,255,255,.06)";roundRect(g,u*0.015,u*0.015,w-u*0.03,h-u*0.03,u*0.022);g.stroke();
+  // write-protect notches on the top edge
+  [0.07,0.89].forEach(nx=>{g.fillStyle="#060607";roundRect(g,w*nx,-1,w*0.04,h*0.04,u*0.004);g.fill();
+    g.strokeStyle="rgba(255,255,255,.12)";g.beginPath();g.moveTo(w*nx,h*0.04);g.lineTo(w*(nx+0.04),h*0.04);g.stroke();});
+  // ribbed grips in the lower corners
+  g.lineWidth=lw*1.3;
+  for(let i=0;i<8;i++){[0.05+i*0.014,0.95-i*0.014].forEach(gx=>{
+    g.strokeStyle="rgba(0,0,0,.55)";g.beginPath();g.moveTo(w*gx,h*0.775);g.lineTo(w*gx,h*0.93);g.stroke();
+    g.strokeStyle="rgba(255,255,255,.08)";g.beginPath();g.moveTo(w*gx+lw*1.3,h*0.775);g.lineTo(w*gx+lw*1.3,h*0.93);g.stroke();});}
+  // head area (bottom trapezoid) with openings the lamp shines through
+  const ty=h*0.765;
+  g.beginPath();g.moveTo(w*0.17,h);g.lineTo(w*0.205,ty);g.lineTo(w*0.795,ty);g.lineTo(w*0.83,h);g.closePath();
+  const tg=g.createLinearGradient(0,ty,0,h);tg.addColorStop(0,"#34363b");tg.addColorStop(1,"#17181b");g.fillStyle=tg;g.fill();
+  g.strokeStyle="rgba(255,255,255,.14)";g.lineWidth=lw;g.beginPath();g.moveTo(w*0.205,ty);g.lineTo(w*0.795,ty);g.stroke();
+  g.strokeStyle="rgba(0,0,0,.6)";g.beginPath();g.moveTo(w*0.17,h);g.lineTo(w*0.205,ty);g.moveTo(w*0.795,ty);g.lineTo(w*0.83,h);g.stroke();
+  const hole=(f)=>{g.save();f();g.fillStyle="#050505";g.fill();g.clip();
+    const lg=g.createLinearGradient(0,h*0.82,0,h);lg.addColorStop(0,"rgba(0,0,0,0)");lg.addColorStop(1,S.lamp);g.globalAlpha=0.75;g.fillStyle=lg;g.fillRect(0,0,w,h);g.restore();
+    f();g.strokeStyle="rgba(0,0,0,.8)";g.lineWidth=lw*1.5;g.stroke();};
+  [0.285,0.715].forEach(px=>hole(()=>{g.beginPath();g.arc(w*px,h*0.87,u*0.021,0,7);}));
+  [[0.235,0.02],[0.37,0.05],[0.455,0.09],[0.58,0.05],[0.745,0.02]].forEach(([px,pw])=>hole(()=>{g.beginPath();g.rect(w*px,h*0.9,w*pw,h*0.1);}));
+  g.fillStyle="#cdbf9e";g.fillRect(w*0.48,h*0.915,w*0.04,h*0.03);          // pressure-pad felt behind the head opening
+  casScrew(g,w*0.5,h*0.82,u*0.0125,0.4);
+  [[0.026,0.055,0.2],[0.974,0.055,1.1],[0.026,0.945,0.7],[0.974,0.945,1.4]].forEach(([sx,sy,a])=>casScrew(g,w*sx,h*sy,u*0.0115,a));
+  g.fillStyle="rgba(255,255,255,.2)";g.font=`700 ${Math.round(h*0.06)}px "Barlow Condensed",sans-serif`;g.textBaseline="middle";
+  g.textAlign="left";g.fillText("A",w*0.17,h*0.85);g.textAlign="right";g.fillText("◀ ▶",w*0.83,h*0.85);
+  // ---- label (backlit like the VU meter faces)
+  const lx=w*0.045,ly=h*0.05,lW=w*0.91,lH=h*0.665;
+  g.save();g.shadowColor="rgba(0,0,0,.5)";g.shadowBlur=u*0.006;g.shadowOffsetY=u*0.002;
+  const pg=g.createRadialGradient(lx+lW*0.5,ly+lH*0.75,lW*0.04,lx+lW*0.5,ly+lH*0.5,lW*0.75);S.paper.forEach(([o,cc])=>pg.addColorStop(o,cc));
+  g.fillStyle=pg;roundRect(g,lx,ly,lW,lH,u*0.012);g.fill();g.restore();
+  g.save();roundRect(g,lx,ly,lW,lH,u*0.012);g.clip();
+  g.globalAlpha=0.06;g.fillStyle=noisePat(g);g.fillRect(lx,ly,lW,lH);g.globalAlpha=1;       // paper grain
+  // printed stripe band behind the reels
+  const by=h*0.375,bh=h*0.165;
+  g.fillStyle=S.ink;g.globalAlpha=0.85;g.fillRect(lx,by,lW,h*0.008);g.fillRect(lx,by+bh-h*0.008,lW,h*0.008);
+  g.fillStyle=S.red;g.globalAlpha=0.92;g.fillRect(lx,by+h*0.02,lW,bh*0.55);
+  g.fillStyle=S.ink;g.globalAlpha=0.35;g.fillRect(lx,by+h*0.02+bh*0.62,lW,bh*0.12);g.globalAlpha=1;
+  g.fillStyle=S.paper[0][1];g.font=`700 ${Math.round(h*0.075)}px "Barlow Condensed",sans-serif`;g.textBaseline="middle";g.textAlign="left";
+  g.fillText("C-90",lx+lW*0.03,by+h*0.02+bh*0.28);g.textAlign="right";g.fillText("CrO₂",lx+lW*0.97,by+h*0.02+bh*0.28);
+  // print + handwriting area
+  g.fillStyle=S.ink;g.textBaseline="alphabetic";
+  g.globalAlpha=0.75;g.font=`700 ${Math.round(h*0.042)}px "Barlow Condensed",sans-serif`;g.textAlign="left";
+  g.fillText("DENON  STUDIO",lx+lW*0.12,ly+h*0.075);g.textAlign="right";g.fillText("HIGH POSITION · TYPE II",lx+lW*0.975,ly+h*0.075);
+  g.globalAlpha=1;g.lineWidth=lw*1.4;g.strokeStyle=S.ink;roundRect(g,lx+lW*0.025,ly+h*0.045,lW*0.075,h*0.22,u*0.006);g.stroke();
+  g.font=`700 ${Math.round(h*0.17)}px "Barlow Condensed",sans-serif`;g.textAlign="center";g.fillText("A",lx+lW*0.0625,ly+h*0.215);
+  g.globalAlpha=0.35;g.lineWidth=lw;g.beginPath();
+  [0.205,0.305].forEach(yy=>{g.moveTo(lx+lW*0.12,ly+h*yy);g.lineTo(lx+lW*0.975,ly+h*yy);});g.stroke();g.globalAlpha=1;
+  if(S.glow){g.shadowColor=S.glow;g.shadowBlur=u*0.01;}
+  const l1=lab?(lab.artist||lab.title):"Denon Studio",l2=lab?(lab.artist?lab.title:lab.album):"mix tape";
+  g.textAlign="left";g.save();g.translate(lx+lW*0.13,ly+h*0.195);g.rotate(-0.012);
+  g.fillText(fitText(g,l1,lW*0.68,h*0.15,700,HAND),0,0);g.restore();
+  g.save();g.translate(lx+lW*0.13,ly+h*0.295);g.rotate(-0.008);
+  g.fillText(fitText(g,l2||"",lW*0.8,h*0.125,600,HAND),0,0);g.restore();
+  g.fillStyle=S.red;g.textAlign="right";g.save();g.translate(lx+lW*0.97,ly+h*0.195);g.rotate(-0.02);
+  g.font=`700 ${Math.round(h*0.105)}px ${HAND}`;g.fillText(lab&&lab.dur?fmtT(lab.dur):"90'",0,0);g.restore();
+  g.shadowBlur=0;
+  // fine print under the reels: NR boxes + side text
+  g.fillStyle=S.ink;g.strokeStyle=S.ink;g.globalAlpha=0.75;g.font=`600 ${Math.round(h*0.04)}px "Barlow Condensed",sans-serif`;
+  g.textBaseline="middle";g.textAlign="left";const ny=ly+lH-h*0.05;
+  g.fillText("NR",lx+lW*0.03,ny);g.lineWidth=lw;
+  [["ON",0.085],["OFF",0.165]].forEach(([t,px],i)=>{g.strokeRect(lx+lW*px,ny-h*0.016,h*0.032,h*0.032);g.fillText(t,lx+lW*px+h*0.045,ny);
+    if(i===1){g.save();g.font=`700 ${Math.round(h*0.06)}px ${HAND}`;g.fillText("✓",lx+lW*px-h*0.005,ny-h*0.004);g.restore();}});
+  g.textAlign="center";g.fillText("SIDE A  ·  45 MIN  ·  70 µs EQ",lx+lW*0.55,ny);
+  g.textAlign="right";g.fillText("STEREO",lx+lW*0.97,ny);g.globalAlpha=1;
+  g.restore();
+  g.strokeStyle="rgba(0,0,0,.35)";g.lineWidth=lw;roundRect(g,lx,ly,lW,lH,u*0.012);g.stroke();
+  return{c,pad};}
+function casGlass(w,h){                        // window frames + reflections, drawn over the moving reels
+  const pad=Math.round(w*0.08),c=document.createElement("canvas");c.width=Math.ceil(w+2*pad);c.height=Math.ceil(h+2*pad);
+  const g=c.getContext("2d");g.translate(pad,pad);const u=w;
+  g.save();casWinPath(g,0,0,w,h);g.clip();
+  const gl=g.createLinearGradient(0,h*0.33,0,h*0.62);gl.addColorStop(0,"rgba(255,255,255,.26)");gl.addColorStop(.35,"rgba(255,255,255,.04)");gl.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=gl;g.fillRect(0,0,w,h);
+  g.fillStyle="rgba(255,255,255,.07)";g.beginPath();g.moveTo(w*0.42,h*0.3);g.lineTo(w*0.47,h*0.3);g.lineTo(w*0.4,h*0.65);g.lineTo(w*0.35,h*0.65);g.closePath();g.fill();
+  const[wx,wy,ww,wh]=CAS.win;g.strokeStyle="rgba(255,255,255,.55)";g.lineWidth=Math.max(1,u*0.0018);g.beginPath();   // tape scale
+  for(let i=0;i<=8;i++){const sx=w*(wx+ww*(0.1+0.8*i/8));g.moveTo(sx,h*(wy+wh)-h*0.005);g.lineTo(sx,h*(wy+wh)-h*(i%4===0?0.035:0.02));}g.stroke();
+  g.restore();
+  casWinPath(g,0,0,w,h);g.strokeStyle="rgba(0,0,0,.75)";g.lineWidth=u*0.006;g.stroke();
+  casWinPath(g,0,u*0.003,w,h);g.strokeStyle="rgba(255,255,255,.18)";g.lineWidth=u*0.002;g.stroke();
+  return{c,pad};}
+function drawCassette(g,x,y,w,h,S,lab,power,rL,rR){
+  const key=[skin,themeName(),Math.round(w),Math.round(h),lab&&lab.artist,lab&&lab.title,lab&&lab.album,lab&&Math.round(lab.dur||0),document.fonts&&document.fonts.status].join("|");
+  if(!casCache||casCache.key!==key)casCache={key,base:casBase(w,h,S,lab),glass:casGlass(w,h)};
+  const B=casCache.base;g.drawImage(B.c,x-B.pad,y-B.pad);
+  // through the windows: backlight, tape packs, turning hubs
+  g.save();casWinPath(g,x,y,w,h);g.clip();
+  const bl=g.createLinearGradient(0,y+h*0.36,0,y+h*0.6);S.paper.forEach(([o,c])=>bl.addColorStop(o,c));
+  g.fillStyle=bl;g.fillRect(x,y+h*0.3,w,h*0.36);g.fillStyle="rgba(14,10,7,.38)";g.fillRect(x,y+h*0.3,w,h*0.36);
+  const hy=y+h*CAS.hubY,u=w;
+  [[CAS.hubX[0],rL],[CAS.hubX[1],rR]].forEach(([hx,r])=>{const cx=x+w*hx,R=r*u;
+    const pk=g.createRadialGradient(cx,hy,R*0.2,cx,hy,R);pk.addColorStop(0,"#1a110a");pk.addColorStop(.8,"#352215");pk.addColorStop(.96,"#6a4a2d");pk.addColorStop(1,"#24170d");
+    g.fillStyle=pk;g.beginPath();g.arc(cx,hy,R,0,7);g.fill();
+    g.strokeStyle="rgba(255,225,190,.06)";g.lineWidth=Math.max(1,u*0.0015);
+    for(let k=1;k<6;k++){const rr=u*CAS.hubR+(R-u*CAS.hubR)*k/6;g.beginPath();g.arc(cx,hy,rr,0,7);g.stroke();}
+    g.strokeStyle="rgba(255,230,200,.22)";g.lineWidth=R*0.05;g.beginPath();g.arc(cx,hy,R*0.86,-2.5,-1.7);g.stroke();});
+  [[CAS.hubX[0],tape.aL],[CAS.hubX[1],tape.aR]].forEach(([hx,a])=>{const cx=x+w*hx,R=u*CAS.hubR,Ri=u*CAS.hubIn;
+    g.save();g.translate(cx,hy);g.rotate(a);
+    g.fillStyle=S.lamp;g.globalAlpha=0.55;g.beginPath();g.arc(0,0,Ri,0,7);g.fill();g.globalAlpha=1;   // light through the hub
+    g.fillStyle="#efebe1";g.beginPath();g.arc(0,0,R,0,7);g.arc(0,0,Ri,0,7,true);g.fill("evenodd");
+    g.strokeStyle="rgba(0,0,0,.18)";g.lineWidth=Math.max(1,R*0.04);g.beginPath();g.arc(0,0,R*0.8,0,7);g.stroke();
+    for(let i=0;i<6;i++){g.rotate(Math.PI/3);g.fillStyle="#efebe1";g.fillRect(-Ri*0.16,Ri*0.5,Ri*0.32,Ri*0.55);
+      g.fillStyle="rgba(0,0,0,.25)";g.fillRect(Ri*0.1,Ri*0.5,Ri*0.06,Ri*0.55);}
+    g.fillStyle="rgba(0,0,0,.35)";g.fillRect(-R*0.04,R*0.84,R*0.08,R*0.16);                          // clip notch
+    g.restore();
+    const sh=g.createRadialGradient(cx-R*0.35,hy-R*0.4,R*0.1,cx,hy,R);sh.addColorStop(0,"rgba(255,255,255,.35)");sh.addColorStop(.6,"rgba(255,255,255,0)");sh.addColorStop(1,"rgba(0,0,0,.35)");
+    g.fillStyle=sh;g.beginPath();g.arc(cx,hy,R,0,7);g.arc(cx,hy,Ri,0,7,true);g.fill("evenodd");});
+  g.restore();
+  const G=casCache.glass;g.drawImage(G.c,x-G.pad,y-G.pad);
+  // the tape running along the bottom edge
+  g.fillStyle="#3a2416";g.fillRect(x+w*0.175,y+h*0.958,w*0.65,h*0.024);
+  g.save();g.strokeStyle="rgba(255,220,180,.2)";g.lineWidth=h*0.01;g.setLineDash([u*0.005,u*0.028]);g.lineDashOffset=-tape.tx;
+  g.beginPath();g.moveTo(x+w*0.175,y+h*0.97);g.lineTo(x+w*0.825,y+h*0.97);g.stroke();g.restore();
+}
+function drawDeck(dt){
+  if(!$("#nowWrap").classList.contains("tape")&&performance.now()>deckUntil)return;
+  const W=deckCv.width,H=deckCv.height;
+  // while the deck rolls open the canvas is only a few px tall -> sizes would go negative (arc throws)
+  if(W<160||H<90||H-2*W*0.025<60){dg.clearRect(0,0,W,H);return;}
+  const S=deckSkin(),key=skin+"|"+themeName()+"|"+W+"x"+H;
+  if(!deckBg||deckBg.key!==key)deckBg={key,lit:deckFace(1,S,W,H),dark:deckFace(0,S,W,H)};
+  // motion: cassette slide (eject / insert) and reels
+  if(cas.wait>0)cas.wait-=dt;else cas.y+=(cas.tgt-cas.y)*Math.min(1,dt*(cas.tgt>cas.y?7:4.2));
+  if(cas.pend&&cas.y>0.96){cas.lab=cas.pend;cas.pend=null;cas.tgt=0;}
+  if(tape.spinT>0)tape.spinT-=dt;
+  const tgt=cas.pend||cas.y>0.2?0:tape.spinT>0?tape.spin:tape.playing?1:0;
+  tape.v+=(tgt-tape.v)*Math.min(1,dt*(Math.abs(tgt)>1||Math.abs(tape.v)>1.5?7:2.6));
+  const RMIN=CAS.RMIN,RMAX=CAS.RMAX,p=tape.dur?Math.max(0,Math.min(1,tapePos()/tape.dur)):0;
+  const rL=Math.sqrt(RMIN*RMIN+(1-p)*(RMAX*RMAX-RMIN*RMIN)),rR=Math.sqrt(RMIN*RMIN+p*(RMAX*RMAX-RMIN*RMIN));
+  const V0=0.1;tape.aL+=tape.v*V0/rL*dt;tape.aR+=tape.v*V0/rR*dt;
+  // frame
+  const g=dg,pw=powerSm;g.clearRect(0,0,W,H);
+  g.drawImage(deckBg.dark,0,0);g.globalAlpha=pw;g.drawImage(deckBg.lit,0,0);g.globalAlpha=1;
+  const ins=W*0.025,iw=W-2*ins,ih=H-2*ins;
+  let ch=ih*0.86,cw=ch*1.574;if(cw>iw*0.9){cw=iw*0.9;ch=cw/1.574;}
+  const cx=(W-cw)/2,cy0=ins+(ih-ch)/2+ih*0.03,cy=cy0+cas.y*(ih*0.95);
+  tape.tx+=tape.v*V0*cw*dt;
+  g.save();roundRect(g,ins,ins,iw,ih,W*0.012);g.clip();
+  if(cas.y<0.995){g.save();g.translate(cx+cw/2,cy+ch/2);g.rotate(cas.y*0.035);g.translate(-(cx+cw/2),-(cy+ch/2));
+    drawCassette(g,cx,cy,cw,ch,S,cas.lab,pw,rL,rR);g.restore();}
+  // deck legends on the dark backdrop
+  const fs=Math.max(10,Math.min(ih*0.075,(cy0-ins)*0.62));
+  g.font=`600 ${Math.round(fs)}px "Barlow Condensed",sans-serif`;g.textBaseline="middle";
+  const st=!MUS?"■ STOP":cas.pend?"⏏ EJECT":tape.spinT>0?(tape.spin>0?"▶▶ FF":"◀◀ REW"):tape.playing?"▶ PLAY":MUS.state==="PAUSED_PLAYBACK"?"❚❚ PAUSE":"■ STOP";
+  g.fillStyle=S.lamp;g.shadowColor=S.lamp;g.shadowBlur=fs*0.6*pw;g.globalAlpha=0.25+0.7*pw;g.textAlign="left";
+  g.fillText(st,ins+fs*0.8,ins+(cy0-ins)/2);g.shadowBlur=0;
+  g.globalAlpha=0.3*pw+0.1;g.textAlign="right";g.fillText("DENON STUDIO · CASSETTE · AUTO REVERSE",W-ins-fs*0.8,ins+(cy0-ins)/2);
+  g.globalAlpha=1;
+  if(pw<0.98){g.fillStyle="rgba(0,0,0,"+(0.6*(1-pw))+")";g.fillRect(ins,ins,iw,ih);}
+  g.restore();
+  glass(g,W,H,ins,0.8);
+  tapeUi();
+}
+
+requestAnimationFrame(frame);
+
+poll();setInterval(poll,700);
+</script>
+</body>
+</html>
