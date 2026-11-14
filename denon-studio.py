@@ -531,6 +531,26 @@ def ytuner_status():
 PLAYLIST_TYPES = ("audio/x-scpls", "audio/scpls", "audio/x-mpegurl", "audio/mpegurl",
                   "application/pls+xml", "application/x-mpegurl")
 
+class HLSStream(IOError):
+    """the station is HLS (.m3u8 segments): no single stream to relay -> ffmpeg reads it (see _transcode)"""
+    def __init__(self, url):
+        IOError.__init__(self, "HLS"); self.url = url
+
+def probe_hls(url):
+    """codec / kbps / kHz / channels of an HLS station via ffprobe"""
+    try:
+        j = json.loads(subprocess.run(["ffprobe", "-v", "error", "-of", "json", "-show_entries",
+            "stream=codec_type,codec_name,sample_rate,channels,bit_rate:format=bit_rate", url],
+            capture_output=True, text=True, timeout=12).stdout or "{}")
+    except Exception:
+        return {}
+    a = next((x for x in j.get("streams", []) if x.get("codec_type") == "audio"), None)
+    if not a: return {}
+    codec = (a.get("codec_name") or "").lower()
+    br = int(a.get("bit_rate") or (j.get("format") or {}).get("bit_rate") or 0) // 1000
+    return {"codec": {"aac": "AAC", "mp3": "MP3", "opus": "OPUS", "vorbis": "OGG"}.get(codec, codec.upper()),
+            "br": br or None, "sr": int(a.get("sample_rate") or 0) or None, "ch": a.get("channels")}
+
 def open_stream(url, depth=0, info=None):
     if depth > 6: raise IOError("too many redirects")
     u = urlparse(url)
@@ -571,11 +591,13 @@ def open_stream(url, depth=0, info=None):
             if not d: break
             data += d
         s.close()
+        if b"#EXT-X-" in data[:4096]:                  # an HLS playlist served as plain m3u
+            raise HLSStream(url)
         m = re.search(rb"(https?://[^\s\"'<>]+)", data)
         if not m: raise IOError("empty playlist")
         return open_stream(m.group(1).decode(), depth + 1, info)
     if ctype in ("application/vnd.apple.mpegurl",) or low.endswith(".m3u8"):
-        s.close(); raise IOError("HLS stream is not supported")
+        s.close(); raise HLSStream(url)
     if info is not None: info.update(h)
     return s, body, ctype
 
@@ -661,7 +683,12 @@ def _read_some(s, first, n=16000, t=3.0):
 def probe_quality(url, rb=None):
     h = {}
     try:
-        s, first, ctype = open_stream(url, info=h)
+        try:
+            s, first, ctype = open_stream(url, info=h)
+        except HLSStream as e:
+            q = probe_hls(e.url)
+            with _q_lock: _quality[url] = q
+            return q
         data = _read_some(s, first)
         s.close()
         q = _quality_from(h, ctype, data, rb)
@@ -1260,6 +1287,11 @@ class H(BaseHTTPRequestHandler):
                 data = _read_some(s, first)
                 s.close()
                 with _q_lock: _quality[url] = _quality_from(hdr, ctype, data, rb)
+            except HLSStream as e:
+                q = probe_hls(e.url)                          # HLS: ffmpeg will turn it into MP3
+                if not q: return self._json({"ok": False, "msg": "stanica ne radi (HLS se ne otvara)"}, 502)
+                with _q_lock: _quality[url] = q
+                ctype = "application/vnd.apple.mpegurl"
             except Exception as e:
                 return self._json({"ok": False, "msg": "stanica ne radi: %s" % e}, 502)
             try:
@@ -1363,6 +1395,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(403, "Dozvoljene su samo YTuner stanice", "text/plain")
             try:
                 s, first, ctype = open_stream(url)
+            except HLSStream as e:
+                return self._transcode(None, b"", src=e.url)     # browser and Denon both get MP3
             except Exception as e:
                 return self._send(502, "Greška strima: %s" % e, "text/plain")
             if p == "/mp3stream" and ctype not in ("audio/mpeg", "audio/mp3", "audio/x-mpeg"):
@@ -1386,16 +1420,19 @@ class H(BaseHTTPRequestHandler):
         else:
             self._json({"ok": False, "err": "not found"}, 404)
 
-    def _transcode(self, s, first):
-        """AAC/AAC+/OGG station -> MP3 320k for the Denon (it only takes live MP3 over DLNA)"""
+    def _transcode(self, s, first, src=None):
+        """AAC/AAC+/OGG station (piped in) or HLS station (src= URL, ffmpeg reads it) -> MP3 320k for the Denon"""
+        inp = ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5", "-i", src] if src else ["-i", "pipe:0"]
         try:
-            proc = subprocess.Popen(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", "pipe:0", "-vn",
+            proc = subprocess.Popen(["ffmpeg", "-hide_banner", "-loglevel", "error"] + inp + ["-vn",
                                      "-c:a", "libmp3lame", "-b:a", "320k", "-ar", "44100", "-ac", "2",
                                      "-id3v2_version", "0", "-write_xing", "0", "-flush_packets", "1",
                                      "-f", "mp3", "pipe:1"],
-                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                                    stdin=subprocess.DEVNULL if src else subprocess.PIPE,
+                                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         except OSError:
-            s.close(); return self._send(502, "nema ffmpeg-a", "text/plain")
+            if s: s.close()
+            return self._send(502, "nema ffmpeg-a", "text/plain")
         def feed():
             try:
                 if first: proc.stdin.write(first)
@@ -1408,7 +1445,7 @@ class H(BaseHTTPRequestHandler):
             finally:
                 try: proc.stdin.close()
                 except Exception: pass
-        threading.Thread(target=feed, daemon=True).start()
+        if not src: threading.Thread(target=feed, daemon=True).start()
         try:
             self.send_response(200)
             self.send_header("Content-Type", "audio/mpeg")
@@ -1423,7 +1460,8 @@ class H(BaseHTTPRequestHandler):
         finally:
             try: proc.kill()
             except Exception: pass
-            try: s.close()
+            try:
+                if s: s.close()
             except Exception: pass
             proc.wait()
 

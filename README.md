@@ -15,7 +15,7 @@ Samo Python (standardna biblioteka), ništa ne treba instalirati preko `pip`.
 - **Risiver:** uključi/standby, jačina (dugme), mute, svi ulazi, zvučni režimi, Dynamic EQ, Quick Select, Denon meni kao na daljinskom.
 - **Analogni VU metri + ekvilajzer** — 7 izgleda (jantar, plavi, beli, zeleni, crveni, LED, VFD), prate ono što Denon svira.
 - **Internet radio:** „Moje stanice” + pretraga ~50 000 stanica sa [radio-browser.info](https://www.radio-browser.info), pušta se direktno na Denonu (DLNA).
-  Stanice u AAC/AAC+ formatu server u letu pretvara u MP3 (Denon preko DLNA prima samo MP3 strim).
+  Stanice u AAC/AAC+ i **HLS** formatu (npr. BBC) server u letu pretvara u MP3 (Denon preko DLNA prima samo MP3 strim).
 - **Muzika sa računara (MP3, FLAC, WAV, AAC, WMA):** izabereš fasciklu, klikneš pesmu — svira na Denonu, ostale idu redom (ili nasumično).
   Umesto radija se pojavi **kasetofon sa kasetom** osvetljenom kao VU metri; na nalepnici piše izvođač i pesma, kotururi se okreću.
   Kaseta je C-90: posle 45 minuta muzike sama se okrene na **B stranu** (auto reverse). Pored nje su mehanički **brojač trake** i **LED merači nivoa**.
@@ -57,7 +57,7 @@ Plain Python (standard library only) — nothing to `pip install`.
 - **Receiver:** power, volume knob, mute, all inputs, surround modes, Dynamic EQ, Quick Select, on-screen Denon menu like the remote.
 - **Analogue VU meters + spectrum** in 7 styles, following whatever the Denon plays.
 - **Internet radio:** your own list + search of ~50k stations from [radio-browser.info](https://www.radio-browser.info), played on the receiver over DLNA.
-  AAC/AAC+ stations are converted to MP3 on the fly (the receiver only takes MP3 live streams over DLNA).
+  AAC/AAC+ and **HLS** stations (e.g. the BBC) are converted to MP3 on the fly (the receiver only takes MP3 live streams over DLNA).
 - **Local music (MP3, FLAC, WAV, AAC, WMA):** pick a folder, click a song — it plays on the Denon, the rest of the folder follows (or shuffled).
   The radio display rolls up into a **cassette deck**: the tape is lit like the VU meters, artist and title are handwritten on the label, the reels turn as the song plays.
   It is a C-90: after 45 minutes of music it flips over to **side B** (auto reverse); a mechanical **tape counter** and **LED peak meters** sit beside it.
