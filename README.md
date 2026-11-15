@@ -19,7 +19,7 @@ Samo Python (standardna biblioteka), ništa ne treba instalirati preko `pip`.
 - **Muzika sa računara (MP3, FLAC, WAV, AAC, WMA):** izabereš fasciklu, klikneš pesmu — svira na Denonu, ostale idu redom (ili nasumično).
   Umesto radija se pojavi **kasetofon sa kasetom** osvetljenom kao VU metri; na nalepnici piše izvođač i pesma, kotururi se okreću.
   Kaseta je C-90: posle 45 minuta muzike sama se okrene na **B stranu** (auto reverse). Pored nje su mehanički **brojač trake** i **LED merači nivoa**.
-  Omoti albuma na spisku pesama.
+  Omoti albuma na spisku pesama — ako MP3 nema omot, program ga sam nađe na internetu (Deezer/iTunes) i upiše u fajl.
 - Radi i sa telefona: `http://<IP-računara>:8766`.
 
 ### Potrebno
@@ -61,7 +61,7 @@ Plain Python (standard library only) — nothing to `pip install`.
 - **Local music (MP3, FLAC, WAV, AAC, WMA):** pick a folder, click a song — it plays on the Denon, the rest of the folder follows (or shuffled).
   The radio display rolls up into a **cassette deck**: the tape is lit like the VU meters, artist and title are handwritten on the label, the reels turn as the song plays.
   It is a C-90: after 45 minutes of music it flips over to **side B** (auto reverse); a mechanical **tape counter** and **LED peak meters** sit beside it.
-  Album art in the song list.
+  Album art in the song list — if an MP3 has none, it is looked up online (Deezer/iTunes) and written into the file.
 - Works from a phone too: `http://<computer-IP>:8766`.
 
 ### Requirements

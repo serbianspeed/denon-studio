@@ -951,35 +951,135 @@ def track_meta(rel):
 
 COVER_DIR = os.path.join(USER_HOME, ".cache", "denon-studio", "covers")
 _cover_sem = threading.Semaphore(3)
+_net_lock = threading.Lock()          # one online lookup at a time (Deezer allows ~10/s, we stay far below)
+_net_last = [0.0]
+_served = {}                          # path -> last time the Denon/page read it (don't rewrite a playing file)
+_embed_todo = {}                      # path -> picture waiting to be written into the mp3
+
+def _thumb(src_args, data=None):
+    r = subprocess.run(["ffmpeg", "-v", "error"] + src_args + ["-an", "-frames:v", "1", "-vf",
+                        "scale=160:160:force_original_aspect_ratio=increase,crop=160:160",
+                        "-c:v", "mjpeg", "-q:v", "4", "-f", "image2", "pipe:1"], input=data, capture_output=True, timeout=15)
+    return r.stdout if r.returncode == 0 and r.stdout[:2] == b"\xff\xd8" else None
+
+def _fold(s):
+    import unicodedata
+    s = unicodedata.normalize("NFKD", (s or "").lower().replace("đ", "dj"))
+    return re.sub(r"[^a-z0-9]+", " ", "".join(c for c in s if not unicodedata.combining(c))).strip()
+
+def _same_artist(a, b):
+    a, b = _fold(a), _fold(b)
+    if not a or not b: return False
+    if a in b or b in a: return True
+    wa, wb = set(a.split()) - {"the", "and", "feat", "ft"}, set(b.split()) - {"the", "and", "feat", "ft"}
+    return bool(wa & wb)
+
+def _song_tags(p):
+    """artist + title the same way the music list shows them (file name first, then tags)"""
+    a, t = split_name(os.path.splitext(os.path.basename(p))[0])
+    if a: return a, t
+    try:
+        import mutagen
+        f = mutagen.File(p, easy=True)
+        if f and f.tags:
+            return ((f.tags.get("artist") or [""])[0].strip(), (f.tags.get("title") or [t])[0].strip() or t)
+    except Exception: pass
+    return "", t
+
+def find_cover_online(artist, title):
+    """album cover from Deezer, else iTunes; only if the artist matches. Returns jpg bytes or None.
+       Raises on network trouble, so a missing internet connection is not remembered as 'no cover'."""
+    if not artist or not title: return None
+    title = re.sub(r"\s*[\(\[].*?[\)\]]", "", title).strip() or title
+    def get(url):
+        with _net_lock:
+            time.sleep(max(0, _net_last[0] + 0.3 - time.time())); _net_last[0] = time.time()
+            return urlopen(Request(url, headers={"User-Agent": "DenonStudio/1.0"}), timeout=8).read()
+    pic = None
+    for it in json.loads(get("https://api.deezer.com/search?" + urlencode({"q": artist + " " + title, "limit": 5}))).get("data") or []:
+        if _same_artist(artist, (it.get("artist") or {}).get("name")):
+            pic = (it.get("album") or {}).get("cover_xl") or (it.get("album") or {}).get("cover_big"); break
+    if not pic:
+        for it in json.loads(get("https://itunes.apple.com/search?" + urlencode(
+                {"term": artist + " " + title, "entity": "song", "limit": 5}))).get("results") or []:
+            if _same_artist(artist, it.get("artistName")) and it.get("artworkUrl100"):
+                pic = it["artworkUrl100"].replace("100x100bb", "600x600bb"); break
+    if not pic: return None
+    data = get(pic)
+    return data if data[:2] == b"\xff\xd8" else None
+
+def embed_cover(p, img):
+    """write the picture into the mp3 (ID3 APIC, front cover). The file is rebuilt as a copy and swapped in,
+       keeping its date, so a half-written file can never be left behind."""
+    tmp = os.path.join(os.path.dirname(p), ".%s.cover-tmp" % os.path.basename(p))
+    st = os.stat(p)
+    try:
+        try:
+            from mutagen.id3 import ID3, APIC, ID3NoHeaderError
+            import shutil
+            shutil.copyfile(p, tmp)
+            try: tags = ID3(tmp); v = 4 if tags.version[1] == 4 else 3
+            except ID3NoHeaderError: tags, v = ID3(), 3
+            if tags.getall("APIC"): os.remove(tmp); return True
+            if v == 3: tags.update_to_v23()
+            tags.add(APIC(encoding=3 if v == 4 else 1, mime="image/jpeg", type=3, desc="Cover", data=img))
+            tags.save(tmp, v2_version=v)
+        except ImportError:                         # no mutagen: let ffmpeg do it
+            r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", p, "-f", "image2pipe", "-i", "pipe:0",
+                                "-map", "0:a", "-map", "1", "-c", "copy", "-id3v2_version", "3",
+                                "-metadata:s:v", "title=Album cover", "-metadata:s:v", "comment=Cover (front)",
+                                "-f", "mp3", tmp], input=img, capture_output=True, timeout=60)
+            if r.returncode != 0: raise OSError(r.stderr.decode(errors="replace")[-200:])
+        os.utime(tmp, (st.st_atime, st.st_mtime))
+        try: os.chown(tmp, st.st_uid, st.st_gid)
+        except OSError: pass
+        os.replace(tmp, p)
+        return True
+    except Exception as e:
+        print("cover: could not write into %s: %s" % (p, e))
+        try: os.remove(tmp)
+        except OSError: pass
+        return False
+
+def _try_embed(p):
+    img = _embed_todo.get(p)
+    if img is None or time.time() - _served.get(p, 0) < 600: return     # playing now -> later
+    _embed_todo.pop(p, None)
+    embed_cover(p, img)
 
 def cover_for(rel):
-    """album art for a song: picture inside the file, else cover/folder.jpg next to it (cached as small jpg)"""
+    """album art for a song: picture inside the file, else cover/folder.jpg next to it,
+       else found online by artist + title (and then written into the mp3). Cached as small jpg."""
     p = music_path(rel)
     if not p or not os.path.isfile(p): return None
     key = hashlib.sha1(("%s|%s" % (p, os.path.getmtime(p))).encode()).hexdigest()
     jpg = os.path.join(COVER_DIR, key + ".jpg")
-    if os.path.exists(jpg): return open(jpg, "rb").read()
-    if os.path.exists(jpg + ".none"): return None
-    src = p
+    if os.path.exists(jpg):
+        if p in _embed_todo: _try_embed(p)
+        return open(jpg, "rb").read()
+    if os.path.exists(jpg + ".none2"): return None
+    online = False
     with _cover_sem:
-        r = subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-an", "-frames:v", "1", "-vf",
-                            "scale=160:160:force_original_aspect_ratio=increase,crop=160:160",
-                            "-c:v", "mjpeg", "-q:v", "4", "-f", "image2", "pipe:1"], capture_output=True, timeout=15)
-        data = r.stdout if r.returncode == 0 and r.stdout[:2] == b"\xff\xd8" else None
+        data = _thumb(["-i", p])
         if not data:
             d = os.path.dirname(p)
             pic = next((os.path.join(d, n) for n in sorted(os.listdir(d))
                         if n.lower() in ("cover.jpg", "folder.jpg", "front.jpg", "cover.png", "folder.png", "albumart.jpg")), None)
-            if pic:
-                r = subprocess.run(["ffmpeg", "-v", "error", "-i", pic, "-vf",
-                                    "scale=160:160:force_original_aspect_ratio=increase,crop=160:160",
-                                    "-c:v", "mjpeg", "-q:v", "4", "-f", "image2", "pipe:1"], capture_output=True, timeout=15)
-                data = r.stdout if r.returncode == 0 and r.stdout[:2] == b"\xff\xd8" else None
+            if pic: data = _thumb(["-i", pic])
+        if not data:
+            try: big = find_cover_online(*_song_tags(p))
+            except Exception as e:
+                print("cover: online lookup failed: %s" % e); return None     # offline -> try again next time
+            if big:
+                data = _thumb(["-f", "image2pipe", "-i", "pipe:0"], big)
+                if data and p.lower().endswith(".mp3"):
+                    _embed_todo[p] = big; online = True
     try:
         os.makedirs(COVER_DIR, exist_ok=True)
         if data: open(jpg, "wb").write(data)
-        else: open(jpg + ".none", "w").close()
+        else: open(jpg + ".none2", "w").close()
     except OSError: pass
+    if online: _try_embed(p)
     return data
 
 def _tag(xml, name):
@@ -1476,6 +1576,7 @@ class H(BaseHTTPRequestHandler):
         path = music_path(unquote(p[len("/music/"):]))
         if not path or not os.path.isfile(path) or not _is_audio(os.path.basename(path)):
             return self._send(404, "", "text/plain")
+        _served[path] = time.time()
         size = os.path.getsize(path); start, end, code = 0, size - 1, 200
         m = re.match(r"bytes=(\d*)-(\d*)", self.headers.get("Range") or "")
         if m and (m.group(1) or m.group(2)):
