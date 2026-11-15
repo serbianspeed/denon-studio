@@ -13,6 +13,8 @@ Samo Python (standardna biblioteka), ništa ne treba instalirati preko `pip`.
 
 ### Šta ume
 - **Risiver:** uključi/standby, jačina (dugme), mute, svi ulazi, zvučni režimi, Dynamic EQ, Quick Select, Denon meni kao na daljinskom.
+- **Zvuk** (prekidač „Zvuk“ u zaglavlju — displej se suzi, a dugmad izlete sa strane): bas, visoki i subwoofer (mala dugmad, dupli klik = 0 dB),
+  Tone control, Dynamic Volume, Compressed Audio Restorer, Audyssey MultEQ i Sleep tajmer.
 - **Analogni VU metri + ekvilajzer** — 7 izgleda (jantar, plavi, beli, zeleni, crveni, LED, VFD), prate ono što Denon svira.
 - **Internet radio:** „Moje stanice” + pretraga ~50 000 stanica sa [radio-browser.info](https://www.radio-browser.info), pušta se direktno na Denonu (DLNA).
   Stanice u AAC/AAC+ i **HLS** formatu (npr. BBC) server u letu pretvara u MP3 (Denon preko DLNA prima samo MP3 strim).
@@ -55,6 +57,8 @@ Plain Python (standard library only) — nothing to `pip install`.
 
 ### Features
 - **Receiver:** power, volume knob, mute, all inputs, surround modes, Dynamic EQ, Quick Select, on-screen Denon menu like the remote.
+- **Sound** (the "Zvuk" switch in the header slides the panel in next to the display): bass, treble and subwoofer level knobs
+  (double-click = 0 dB), tone control, Dynamic Volume, Compressed Audio Restorer, Audyssey MultEQ and a sleep timer.
 - **Analogue VU meters + spectrum** in 7 styles, following whatever the Denon plays.
 - **Internet radio:** your own list + search of ~50k stations from [radio-browser.info](https://www.radio-browser.info), played on the receiver over DLNA.
   AAC/AAC+ and **HLS** stations (e.g. the BBC) are converted to MP3 on the fly (the receiver only takes MP3 live streams over DLNA).

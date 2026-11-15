@@ -108,7 +108,11 @@ STATE = {
     "nse": [""] * 9,    # NSE lines 0..8 (now playing / browse list)
     "nseFlags": [0] * 9,
     "nseTime": 0,
+    # sound settings (receiver row): tone control, sub level, dynamic volume, restorer, sleep
+    "tone": None, "bass": None, "treble": None, "sub": None,
+    "dynVol": None, "restorer": None, "sleep": None,
 }
+_unknown = collections.deque(maxlen=80)     # receiver lines we don't parse (/api/debug)
 
 def _vol(v):
     return (int(v) / 10.0 if len(v) == 3 else float(int(v))) - 80
@@ -135,6 +139,20 @@ def apply_line(l):
             st["dynEq"] = l[8:].strip() == "ON"
         elif l.startswith("PSMULTEQ:"):
             st["multEq"] = l[9:].strip()
+        elif l.startswith("PSTONE CTRL"):
+            st["tone"] = l.endswith("ON")
+        elif l.startswith(("PSBAS ", "PSTRE ")) and l[6:].strip().isdigit():
+            st["bass" if l[2:5] == "BAS" else "treble"] = int(l[6:].strip()) - 50
+        elif l.startswith("CVSW ") and l[5:].strip().isdigit():
+            v = l[5:].strip()
+            st["sub"] = (int(v) / 10.0 if len(v) == 3 else float(int(v))) - 50
+        elif l.startswith("PSDYNVOL "):
+            st["dynVol"] = l[9:].strip()
+        elif l.startswith("PSRSTR "):
+            st["restorer"] = l[7:].strip()
+        elif l.startswith("SLP"):
+            v = l[3:].strip()
+            st["sleep"] = 0 if v == "OFF" else (int(v) if v.isdigit() else st["sleep"])
         elif l.startswith("SSFUN"):
             m = re.match(r"SSFUN(\S+)\s+(.*)", l)
             if m: st["fun"][m.group(1)] = m.group(2).strip()
@@ -149,12 +167,15 @@ def apply_line(l):
             st["nse"][i] = "".join(ch for ch in txt if ord(ch) >= 32).rstrip()
             st["nseFlags"][i] = flags
             st["nseTime"] = time.time()
+        elif l not in _unknown:
+            _unknown.append(l)
         raw = st["input_raw"]
         if raw:
             names = dict((c, n) for c, n, _ in ALL_INPUTS)
             st["input"] = st["fun"].get(raw) or names.get(raw, raw.title())
 
-QUERY = ["PW?", "ZM?", "MU?", "MV?", "SI?", "MS?", "PSDYNEQ ?", "PSMULTEQ: ?", "SSFUN ?", "SSSOD ?"]
+QUERY = ["PW?", "ZM?", "MU?", "MV?", "SI?", "MS?", "PSDYNEQ ?", "PSMULTEQ: ?", "SSFUN ?", "SSSOD ?",
+         "PSTONE CTRL ?", "PSBAS ?", "PSTRE ?", "CV?", "PSDYNVOL ?", "PSRSTR ?", "SLP?"]
 
 def reader_loop():
     global _sock
@@ -181,7 +202,7 @@ def reader_loop():
                     pass
                 now = time.time()
                 if now - last_poll > 8:
-                    with _send_lock: s.sendall(b"PW?\rMV?\rSI?\rMS?\rMU?\r")
+                    with _send_lock: s.sendall(b"PW?\rMV?\rSI?\rMS?\rMU?\rSLP?\r")
                     last_poll = now
                 with _state_lock:
                     net = STATE["input_raw"] in NET_SOURCES and STATE["power"]
@@ -1333,6 +1354,8 @@ class H(BaseHTTPRequestHandler):
             st["ytuner"] = ytuner_status()
             st["music"] = music_status()
             self._json({"ok": st["connected"], "st": st})
+        elif p == "/api/debug":
+            self._json({"unknown": list(_unknown)})
         elif p == "/api/cmd":
             cmds = [c for c in q.get("c", []) if c and len(c) < 40]
             if not cmds: return self._json({"ok": False, "err": "no cmd"}, 400)

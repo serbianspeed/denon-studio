@@ -108,7 +108,9 @@ body{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;overflow
 .ind span.on.warn{color:#ffb85a;text-shadow:0 0 5px rgba(255,184,90,.9)}
 
 /* ---------- receiver (+ inputs) ---------- */
-.recv{display:grid;grid-template-columns:auto minmax(0,1.15fr) auto minmax(0,1fr);gap:20px;align-items:stretch}
+.recv{display:grid;grid-template-columns:auto minmax(0,1.15fr) auto 0px minmax(0,1fr);column-gap:20px;align-items:stretch;
+  transition:grid-template-columns .55s cubic-bezier(.65,0,.25,1),column-gap .55s}
+.recv.aud{grid-template-columns:auto minmax(0,.55fr) auto 438px minmax(0,1fr);column-gap:18px}
 .recv .pw,.recv .knobwrap{justify-content:center}
 .recv .inputs{grid-auto-rows:1fr;gap:6px;grid-template-columns:repeat(var(--cols,6),minmax(0,1fr))}
 .pw{display:flex;flex-direction:column;align-items:center;gap:7px}
@@ -132,6 +134,37 @@ body{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;overflow
   background:radial-gradient(circle at 40% 35%,#fff 0 18%,var(--vfd) 45%,var(--vfd-deep) 100%);
   box-shadow:0 0 4px var(--vfd),0 0 10px var(--vfd),0 0 18px var(--vfd-glow),inset 0 -1px 1px rgba(0,0,0,.4)}
 .knob:active{cursor:grabbing}
+/* ---------- sound settings (bass / treble / sub + cycle buttons) ---------- */
+.audio{display:flex;gap:14px;align-items:stretch;min-width:0;overflow:hidden;padding:6px 8px 12px;margin:-6px -8px -12px}
+/* the parts fly in one after another (and out in reverse) */
+.audio .tk,.audio .aset .hb{opacity:0;transform:translateX(-26px) scale(.9);transition:opacity .22s,transform .22s;transition-delay:0s}
+.recv.aud .audio .tk,.recv.aud .audio .aset .hb{opacity:1;transform:none;transition:opacity .35s,transform .45s cubic-bezier(.2,1.4,.4,1)}
+.recv.aud .audio .tk:nth-child(1){transition-delay:.18s}.recv.aud .audio .tk:nth-child(2){transition-delay:.24s}.recv.aud .audio .tk:nth-child(3){transition-delay:.30s}
+.recv.aud .aset .hb:nth-child(1){transition-delay:.32s}.recv.aud .aset .hb:nth-child(2){transition-delay:.36s}.recv.aud .aset .hb:nth-child(3){transition-delay:.40s}
+.recv.aud .aset .hb:nth-child(4){transition-delay:.44s}.recv.aud .aset .hb:nth-child(5){transition-delay:.48s}.recv.aud .aset .hb:nth-child(6){transition-delay:.52s}
+.recv.aud .tk.off{opacity:.38}
+/* knobs spin up into place when the panel opens */
+.audio .knob.mini .ptr{transition:opacity .3s}.audio .tk{will-change:transform}
+@keyframes tkSpin{from{rotate:-200deg}to{rotate:0deg}}
+.recv.aud .knob.mini{animation:tkSpin .7s cubic-bezier(.2,.9,.3,1) both}
+.recv.aud .tk:nth-child(2) .knob.mini{animation-delay:.06s}.recv.aud .tk:nth-child(3) .knob.mini{animation-delay:.12s}
+@media (prefers-reduced-motion:reduce){.recv,.audio *{transition:none!important;animation:none!important}}
+.tknobs{display:flex;gap:10px;align-items:center}
+.tk{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;transition:opacity .2s}
+.tk.off{opacity:.38}
+.knob.mini{width:50px;height:50px;margin:5px 0 2px}
+.knob.mini .ptr{width:6px;height:6px;margin-left:-3px;top:8%}
+[data-theme=crna] .knob.mini,.knob.mini{box-shadow:0 0 0 4px #0b0c0d,0 0 0 5px #2c2e32,0 6px 10px rgba(0,0,0,.75),inset 0 2px 3px rgba(255,255,255,.18),inset 0 -3px 6px rgba(0,0,0,.6)}
+[data-theme=hrom] .knob.mini{box-shadow:0 0 0 4px #2a2c30,0 0 0 5px #f4f5f7,0 6px 10px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,255,255,.5),inset 0 -3px 6px rgba(0,0,0,.45)}
+.vfdtxt{font-family:"VT323",ui-monospace,monospace;color:var(--vfd);text-shadow:0 0 4px rgba(111,243,214,.7);font-size:18px;line-height:1}
+[data-theme=hrom] .vfdtxt{color:#06695b;text-shadow:none}
+.tk .lbl{font-size:9.5px;letter-spacing:1.8px}
+.aset{display:grid;grid-template-columns:repeat(2,minmax(0,118px));grid-auto-rows:1fr;gap:6px}
+.aset .hb:last-child:nth-child(odd){grid-column:1/-1}
+.aset .hb{justify-content:space-between;font-size:11px;letter-spacing:.8px;min-height:0;padding:4px 8px;gap:6px}
+.aset .hb .k{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.aset .hb .v{font-family:"VT323",ui-monospace,monospace;font-size:17px;letter-spacing:.5px;color:var(--vfd);text-shadow:0 0 4px rgba(111,243,214,.6);font-weight:400}
+[data-theme=hrom] .aset .hb .v{color:#06695b;text-shadow:none}
 .mute.on .led{background:var(--led-r);box-shadow:0 0 6px var(--led-r)}
 .inputs{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));align-content:center}
 .inputs .hb{justify-content:flex-start;font-size:12px;letter-spacing:.6px;overflow:hidden;min-height:0;padding:4px 8px;gap:6px}
@@ -310,12 +343,21 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 /* ---------- small / short screens: stack, page may scroll ---------- */
 @media (max-width:1500px){.modes .hb{font-size:11px;letter-spacing:.3px;padding:6px 4px;gap:5px}}
+/* narrower screens: inputs move to their own row under the display + sound block */
+@media (max-width:1600px){
+  .recv{grid-template-columns:auto minmax(260px,1fr) auto 0px;row-gap:12px}
+  .recv.aud{grid-template-columns:auto minmax(260px,1fr) auto 438px}
+  .recv .inputs{grid-column:1/-1;grid-template-columns:repeat(auto-fill,minmax(128px,1fr))!important}
+  .recv .inputs .hb{min-height:30px}
+}
 @media (max-width:1180px),(max-height:760px){
   body{overflow:auto}
   .rack{height:auto}
   .main{grid-template-columns:1fr}
-  .recv{grid-template-columns:auto minmax(0,1fr) auto}
+  .recv,.recv.aud{grid-template-columns:auto minmax(0,1fr) auto}
   .recv .inputs{grid-column:1/-1}
+  .recv .audio{grid-column:1/-1;justify-content:center;flex-wrap:wrap}
+  .recv:not(.aud) .audio{display:none}
   .meter{aspect-ratio:1.6}
   .radio{height:min(720px,90vh)}
 }
@@ -323,7 +365,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   .unit{padding:12px 30px}
   .unit::before,.unit::after{width:20px}
   .screw.tl,.screw.bl{left:5px}.screw.tr,.screw.br{right:5px}
-  .recv{grid-template-columns:1fr;justify-items:stretch}
+  .recv,.recv.aud{grid-template-columns:1fr;justify-items:stretch}
   .recv .inputs{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}
   .pw{flex-direction:row;justify-content:center}
   .meters,.under,.play,.menu{grid-template-columns:1fr}
@@ -345,6 +387,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <i class="screw tl"></i><i class="screw bl"></i><i class="screw tr"></i><i class="screw br"></i>
   <div class="row hdr">
     <span class="badge">DENON <small>AVR-X1000 · STUDIO CONTROL</small></span><span class="spacer"></span>
+    <button class="sw" id="audBtn" role="switch" aria-checked="false" aria-controls="audio" title="Bas, visoki, subwoofer, Dynamic Volume, Restorer, Audyssey, sleep"><span class="knb"></span><span class="led" id="audLed"></span>Zvuk</button>
     <button class="sw" id="themeBtn" title="Promeni temu: crna / hrom"><span class="knb"></span><span id="themeTxt">Tema: crna</span></button>
     <span class="lbl" style="margin-left:10px">Veza</span><span class="led" id="connLed"></span>
   </div>
@@ -368,6 +411,14 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
         <div class="ptr"></div>
       </div>
       <span class="lbl">Volume</span>
+    </div>
+    <div class="audio" id="audio" aria-label="Podešavanje zvuka" inert>
+      <div class="tknobs">
+        <div class="tk" id="tkBass"><div class="knob mini" data-tk="bass" role="slider" tabindex="0" aria-label="Bas" title="Bas — vuci gore/dole ili točkić miša, dupli klik = 0 dB"><div class="ptr"></div></div><span class="tv vfdtxt">--</span><span class="lbl">Bass</span></div>
+        <div class="tk" id="tkTreble"><div class="knob mini" data-tk="treble" role="slider" tabindex="0" aria-label="Visoki tonovi" title="Visoki tonovi — vuci gore/dole ili točkić miša, dupli klik = 0 dB"><div class="ptr"></div></div><span class="tv vfdtxt">--</span><span class="lbl">Treble</span></div>
+        <div class="tk" id="tkSub"><div class="knob mini" data-tk="sub" role="slider" tabindex="0" aria-label="Subwoofer" title="Jačina subwoofera — vuci gore/dole ili točkić miša, dupli klik = 0 dB"><div class="ptr"></div></div><span class="tv vfdtxt">--</span><span class="lbl">Sub</span></div>
+      </div>
+      <div class="aset" id="aset"></div>
     </div>
     <div class="grid inputs" id="inputs" aria-label="Izbor ulaza"></div>
   </div>
@@ -577,7 +628,7 @@ function render(ok){
   $("#dynBtn .led").className="led "+(st.dynEq?"a":"");
   const mm=modeMatch(st.surround);
   $$("#modes [data-ms]").forEach(b=>b.querySelector(".led").className="led "+(on&&b.dataset.ms===mm?"a":""));
-  renderNet(st);renderNow(st);renderTape(st);renderYt(st.ytuner);
+  renderNet(st);renderNow(st);renderTape(st);renderYt(st.ytuner);renderAudio(st,on);
   meterPower=on?1:0.18;
   if(vuMode==="auto")autoFollow();
 }
@@ -618,6 +669,70 @@ knob.addEventListener("pointerup",endDrag);knob.addEventListener("pointercancel"
 knob.addEventListener("wheel",e=>{e.preventDefault();cmd(e.deltaY<0?"MVUP":"MVDOWN");},{passive:false});
 knob.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="ArrowRight"){cmd("MVUP");e.preventDefault();}
   if(e.key==="ArrowDown"||e.key==="ArrowLeft"){cmd("MVDOWN");e.preventDefault();}});
+
+/* ================= sound settings: bass / treble / sub knobs + cycle buttons ================= */
+const TK={bass:{min:-6,max:6,step:1,name:"Bas"},treble:{min:-6,max:6,step:1,name:"Visoki"},sub:{min:-12,max:12,step:.5,name:"Subwoofer"}};
+const tkDrag={},tkHold={};let tkSent=0;
+function tkFmt(v){if(v==null)return"--";const r=Math.round(v*2)/2;return(r>0?"+":"")+(r%1?r.toFixed(1):r)+"dB";}
+function tkSet(k,v){const el=document.querySelector('[data-tk="'+k+'"]'),d=TK[k];if(!el)return;
+  el.closest(".tk").querySelector(".tv").textContent=tkFmt(v);
+  if(v==null)return;d.val=v;el.style.transform="rotate("+(-135+270*(v-d.min)/(d.max-d.min))+"deg)";el.setAttribute("aria-valuenow",v);}
+/* bass/treble work only with tone control on, Dynamic EQ off and not in (Pure) Direct */
+function toneBlock(){if(!ST)return"";if(ST.dynEq)return"Bas i visoki rade samo kad je Dynamic EQ isključen";
+  if(/DIRECT/i.test(ST.surround||""))return"Bas i visoki ne rade u Direct / Pure Direct režimu";return"";}
+function tkSend(k,force){const n=performance.now();tkHold[k]=n;if(!force&&n-tkSent<160)return;tkSent=n;const v=TK[k].val;
+  if(k==="sub"){const c=Math.round((v+50)*10);cmd("CVSW "+(c%10?String(c):String(c/10)));return;}
+  const c=[];if(ST&&ST.tone===false)c.push("PSTONE CTRL ON");c.push((k==="bass"?"PSBAS ":"PSTRE ")+(Math.round(v)+50));cmd(...c);}
+function tkAllowed(k){if(k==="sub")return ST&&ST.sub!=null?"":"Subwoofer nije podešen na risiveru";const b=toneBlock();return b;}
+$$("[data-tk]").forEach(el=>{const k=el.dataset.tk,d=TK[k];let y0=0,v0=0;
+  const nudge=dir=>{const w=tkAllowed(k);if(w)return say(w);const v=Math.max(d.min,Math.min(d.max,(d.val??0)+dir*d.step));
+    tkSet(k,v);tkSend(k,true);say(d.name+" "+tkFmt(v));};
+  el.addEventListener("pointerdown",e=>{const w=tkAllowed(k);if(w){say(w);return;}tkDrag[k]=true;el.setPointerCapture(e.pointerId);y0=e.clientY;v0=d.val??0;});
+  el.addEventListener("pointermove",e=>{if(!tkDrag[k])return;const r=Math.max(d.min,Math.min(d.max,v0+(y0-e.clientY)*(d.max-d.min)/160));
+    const v=Math.round(r/d.step)*d.step;if(v!==d.val){tkSet(k,v);tkSend(k,false);}});
+  const end=()=>{if(!tkDrag[k])return;tkDrag[k]=false;tkSend(k,true);say(d.name+" "+tkFmt(d.val));};
+  el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
+  el.addEventListener("dblclick",()=>{const w=tkAllowed(k);if(w)return say(w);tkSet(k,0);tkSend(k,true);say(d.name+" 0 dB");});
+  el.addEventListener("wheel",e=>{e.preventDefault();nudge(e.deltaY<0?1:-1);},{passive:false});
+  el.addEventListener("keydown",e=>{if(/Up|Right/.test(e.key)){nudge(1);e.preventDefault();}if(/Down|Left/.test(e.key)){nudge(-1);e.preventDefault();}});});
+/* cycle buttons: each click goes to the next value */
+const ASET=[
+  {id:"tone",k:"Tone",title:"Tone control — uključi/isključi bas i visoke (isključeno = ravno)",key:"tone",
+   vals:[[true,"ON","PSTONE CTRL ON"],[false,"OFF","PSTONE CTRL OFF"]]},
+  {id:"dynVol",k:"Dyn Vol",title:"Dynamic Volume — izjednačava tiho i glasno (reklame, filmovi noću)",key:"dynVol",
+   vals:[["OFF","OFF","PSDYNVOL OFF"],["LIT","LIGHT","PSDYNVOL LIT"],["MED","MED","PSDYNVOL MED"],["HEV","HEAVY","PSDYNVOL HEV"]]},
+  {id:"restorer",k:"Restorer",title:"Compressed Audio Restorer — vraća visoke i bas MP3-u i internet radiju (radi u stereo režimima)",key:"restorer",
+   vals:[["OFF","OFF","PSRSTR OFF"],["MODE1","1","PSRSTR MODE1"],["MODE2","2","PSRSTR MODE2"],["MODE3","3","PSRSTR MODE3"]]},
+  {id:"multEq",k:"Audyssey",title:"Audyssey MultEQ — korekcija zvuka prema sobi (potrebno merenje mikrofonom na risiveru)",key:"multEq",
+   vals:[["AUDYSSEY","ON","PSMULTEQ:AUDYSSEY"],["BYP.LR","BYP.LR","PSMULTEQ:BYP.LR"],["FLAT","FLAT","PSMULTEQ:FLAT"],["OFF","OFF","PSMULTEQ:OFF"]]},
+  {id:"sleep",k:"Sleep",title:"Tajmer za gašenje — risiver sam ode u standby",key:"sleep",
+   vals:[[0,"OFF","SLPOFF"],[30,"30m","SLP030"],[60,"60m","SLP060"],[90,"90m","SLP090"],[120,"120m","SLP120"]]}];
+const aLast={};
+(function(){const box=$("#aset");ASET.forEach(a=>{const b=document.createElement("button");b.className="hb";b.id="as_"+a.id;b.title=a.title;
+  b.innerHTML='<span class="k"><span class="led"></span>'+a.k+'</span><span class="v">--</span>';
+  b.onclick=()=>{press(b);const cur=(ST?ST[a.key]:null)??aLast[a.key]??null;let i=a.vals.findIndex(v=>v[0]===cur);
+    if(a.id==="sleep"&&cur>0)i=a.vals.findIndex(v=>v[0]>=cur)-1;           /* running timer: go to the next step up */
+    const nx=a.vals[(i+1+a.vals.length)%a.vals.length];cmd(nx[2]);say(a.k+": "+nx[1]);
+    aLast[a.key]=nx[0];
+    if(ST){ST[a.key]=nx[0];renderAudio(ST,true);}};
+  box.appendChild(b);});})();
+const recvEl=$(".recv"),audEl=$("#audio");
+function setAud(open,quiet){recvEl.classList.toggle("aud",open);audEl.inert=!open;
+  $("#audBtn").classList.toggle("on",open);$("#audBtn").setAttribute("aria-checked",open);$("#audLed").className="led "+(open?"g":"");
+  try{localStorage.setItem("ds.audio",open?"1":"0");}catch(e){}if(!quiet)say(open?"Zvuk: podešavanja":"Zvuk: sakriveno");}
+$("#audBtn").onclick=()=>setAud(!recvEl.classList.contains("aud"));
+(function(){let o=false;try{o=localStorage.getItem("ds.audio")==="1";}catch(e){}
+  if(o){recvEl.style.transition="none";setAud(true,true);requestAnimationFrame(()=>requestAnimationFrame(()=>recvEl.style.transition=""));}})();
+function renderAudio(st,on){
+  const now=performance.now();for(const k in TK)if(!tkDrag[k]&&!(now-(tkHold[k]||0)<1500))tkSet(k,st[k]);
+  const tb=!!toneBlock()||st.tone===false;
+  $("#tkBass").classList.toggle("off",tb);$("#tkTreble").classList.toggle("off",tb);
+  $("#tkSub").classList.toggle("off",st.sub==null);
+  ASET.forEach(a=>{const b=$("#as_"+a.id),v=st[a.key]??aLast[a.key]??null;let t="--",lit=false;
+    if(a.id==="sleep"){if(v!=null){t=v>0?v+"m":"OFF";lit=v>0;}}
+    else if(v!=null){const m=a.vals.find(x=>x[0]===v);t=m?m[1]:String(v);lit=!(v===false||v==="OFF");}
+    b.querySelector(".v").textContent=on?t:"--";b.querySelector(".led").className="led "+(on&&lit?"a":"");});
+}
 
 /* ================= radio: YTuner switch (Denon's own station list) ================= */
 function renderYt(yt){if(!yt)return;
